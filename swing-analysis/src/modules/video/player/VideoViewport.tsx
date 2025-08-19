@@ -75,8 +75,8 @@ const VideoViewport = forwardRef<VideoViewportRef, VideoViewportProps>(
       e.preventDefault();
       e.stopPropagation();
       
-      // Use smaller zoom increments for smoother control
-      const delta = e.deltaY > 0 ? -0.1 : 0.1;
+      // Much smaller increments for finer control
+      const delta = e.deltaY > 0 ? -0.05 : 0.05;
       const newZoom = Math.min(Math.max(zoom + delta, 1), 5); // Limit zoom between 1x and 5x
       
       if (newZoom === 1) {
@@ -85,7 +85,31 @@ const VideoViewport = forwardRef<VideoViewportRef, VideoViewportProps>(
       }
       
       setZoom(newZoom);
-      console.log('Zoom:', newZoom); // Debug log
+    }, [zoom]);
+
+    // Handle keyboard zoom
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+      // Plus key (= key without shift, or + with shift)
+      if (e.key === '=' || e.key === '+') {
+        e.preventDefault();
+        const newZoom = Math.min(zoom + 0.25, 5);
+        setZoom(newZoom);
+      }
+      // Minus key
+      else if (e.key === '-') {
+        e.preventDefault();
+        const newZoom = Math.max(zoom - 0.25, 1);
+        if (newZoom === 1) {
+          setPan({ x: 0, y: 0 });
+        }
+        setZoom(newZoom);
+      }
+      // 0 key to reset
+      else if (e.key === '0') {
+        e.preventDefault();
+        setZoom(1);
+        setPan({ x: 0, y: 0 });
+      }
     }, [zoom]);
 
     // Handle panning when zoomed
@@ -100,10 +124,10 @@ const VideoViewport = forwardRef<VideoViewportRef, VideoViewportProps>(
       // At 5x zoom, image is 5x size, so we can pan 40% in each direction (80% total)
       const maxPanPercent = ((zoom - 1) / zoom) * 100 / 2;
       
-      // Convert mouse movement to percentage of container size
+      // Convert mouse movement to percentage of container size - reduced by 1/3
       const rect = container.getBoundingClientRect();
-      const moveXPercent = (e.movementX / rect.width) * 100;
-      const moveYPercent = (e.movementY / rect.height) * 100;
+      const moveXPercent = (e.movementX / rect.width) * 100 * 0.3; // Reduced to 30% speed
+      const moveYPercent = (e.movementY / rect.height) * 100 * 0.3; // Reduced to 30% speed
       
       setPan(prev => ({
         x: Math.max(-maxPanPercent, Math.min(maxPanPercent, prev.x + moveXPercent)),
@@ -118,16 +142,8 @@ const VideoViewport = forwardRef<VideoViewportRef, VideoViewportProps>(
     }, []);
 
     const getAspectRatioClass = () => {
-      switch (aspectRatio) {
-        case '16:9':
-          return 'aspect-video';
-        case '4:3':
-          return 'aspect-4/3';
-        case 'free':
-          return '';
-        default:
-          return 'aspect-video';
-      }
+      // Always use 16:9 widescreen aspect ratio for recording
+      return 'aspect-[16/9]'; // 16:9 widescreen ratio
     };
 
     if (!src) {
@@ -145,6 +161,8 @@ const VideoViewport = forwardRef<VideoViewportRef, VideoViewportProps>(
         onWheel={handleWheel}
         onMouseMove={handleMouseMove}
         onDoubleClick={handleDoubleClick}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
         style={{ cursor: zoom > 1 ? 'move' : 'default' }}
       >
         {/* Zoom indicator */}
@@ -155,13 +173,13 @@ const VideoViewport = forwardRef<VideoViewportRef, VideoViewportProps>(
         )}
         
         <div 
-          className={`relative ${getAspectRatioClass()} max-w-full mx-auto`} 
+          className={`relative ${className?.includes('w-full h-full') ? 'w-full h-full' : getAspectRatioClass()} max-w-full mx-auto bg-black`} 
           data-video-container="true"
         >
           <video
             ref={videoRef}
             src={src}
-            className="w-full h-full object-contain"
+            className="absolute inset-0 w-full h-full object-contain"
             style={{
               transform: `scale(${zoom}) translate(${pan.x}%, ${pan.y}%)`,
               transformOrigin: 'center',
@@ -190,7 +208,7 @@ const VideoViewport = forwardRef<VideoViewportRef, VideoViewportProps>(
         {/* Zoom hint */}
         {zoom === 1 && (
           <div className="absolute bottom-2 right-2 z-20 bg-black/50 px-2 py-1 rounded text-xs text-gray-400">
-            Scroll to zoom • Double-click to reset
+            Scroll or +/- to zoom • 0 or double-click to reset
           </div>
         )}
       </div>

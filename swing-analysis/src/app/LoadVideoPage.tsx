@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ComparisonVideoPlayer from '../modules/video/ComparisonVideoPlayer';
 import AnalysisRecorder from '../modules/recording/AnalysisRecorder';
+import ReferenceVideos from '../modules/video/ReferenceVideos';
 
 const LoadVideoPage: React.FC = () => {
+  const [setVideo2, setSetVideo2] = useState<((file: File) => void) | null>(null);
   return (
     <div className="min-h-screen bg-gray-900">
       <div className="container mx-auto px-4 py-8">
@@ -12,12 +14,22 @@ const LoadVideoPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main video player with comparison - takes 2 columns on large screens */}
             <div className="lg:col-span-2">
-              <ComparisonVideoPlayer className="w-full" />
+              <ComparisonVideoPlayer 
+                className="w-full" 
+                onVideo2Change={setSetVideo2}
+              />
             </div>
             
             {/* Recording controls sidebar - 1 column */}
             <div className="space-y-6">
               <AnalysisRecorder />
+              {setVideo2 && (
+                <ReferenceVideos 
+                  onSelectVideo={(file) => {
+                    setVideo2(file);
+                  }}
+                />
+              )}
             </div>
           </div>
         </div>

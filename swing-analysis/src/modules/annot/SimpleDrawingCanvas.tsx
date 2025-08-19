@@ -42,7 +42,15 @@ const SimpleDrawingCanvas: React.FC<SimpleDrawingCanvasProps> = ({ videoElement 
     ctx.stroke();
   };
 
-  // Draw arrow
+  // Draw dot
+  const drawDot = (ctx: CanvasRenderingContext2D, x: number, y: number, style: any) => {
+    ctx.fillStyle = style.color;
+    ctx.beginPath();
+    ctx.arc(x, y, style.thickness * 2, 0, Math.PI * 2);
+    ctx.fill();
+  };
+  
+  // Draw arrow (keeping for backwards compatibility)
   const drawArrow = (ctx: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number, style: any) => {
     drawLine(ctx, x1, y1, x2, y2, style);
     
@@ -86,7 +94,14 @@ const SimpleDrawingCanvas: React.FC<SimpleDrawingCanvasProps> = ({ videoElement 
     
     // Draw each annotation
     currentAnnotations.forEach(ann => {
-      if (ann.points.length >= 2) {
+      if (ann.tool === 'dot' && ann.points.length >= 1) {
+        // Dot only needs one point
+        const p = ann.points[0];
+        const x = p.x * canvas.width;
+        const y = p.y * canvas.height;
+        drawDot(ctx, x, y, ann.style);
+      } else if (ann.points.length >= 2) {
+        // Other tools need two points
         const p1 = ann.points[0];
         const p2 = ann.points[1];
         
@@ -172,6 +187,9 @@ const SimpleDrawingCanvas: React.FC<SimpleDrawingCanvasProps> = ({ videoElement 
       case 'line':
         drawLine(ctx, startPoint.x, startPoint.y, currentPos.x, currentPos.y, currentStyle);
         break;
+      case 'dot':
+        drawDot(ctx, currentPos.x, currentPos.y, currentStyle);
+        break;
       case 'arrow':
         drawArrow(ctx, startPoint.x, startPoint.y, currentPos.x, currentPos.y, currentStyle);
         break;
@@ -191,14 +209,19 @@ const SimpleDrawingCanvas: React.FC<SimpleDrawingCanvasProps> = ({ videoElement 
     
     const endPos = getMousePos(e);
     
+    // For dot tool, only use the end position
+    const points = currentTool === 'dot' 
+      ? [{ x: endPos.x / canvas.width, y: endPos.y / canvas.height }]
+      : [
+          { x: startPoint.x / canvas.width, y: startPoint.y / canvas.height },
+          { x: endPos.x / canvas.width, y: endPos.y / canvas.height },
+        ];
+    
     // Create annotation with normalized coordinates
     const annotation: Annotation = {
       id: `ann-${Date.now()}`,
       tool: currentTool as any,
-      points: [
-        { x: startPoint.x / canvas.width, y: startPoint.y / canvas.height },
-        { x: endPos.x / canvas.width, y: endPos.y / canvas.height },
-      ],
+      points,
       style: { ...currentStyle },
       tStart: playback.currentTime,
       tEnd: playback.currentTime + 5,
@@ -223,6 +246,9 @@ const SimpleDrawingCanvas: React.FC<SimpleDrawingCanvasProps> = ({ videoElement 
         setIsDrawing(false);
         setStartPoint(null);
         redraw();
+      }}
+      onWheel={(e) => {
+        // Don't prevent wheel events - let them bubble up for zoom
       }}
     />
   );

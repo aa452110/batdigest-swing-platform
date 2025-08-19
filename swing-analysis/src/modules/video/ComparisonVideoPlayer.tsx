@@ -3,13 +3,13 @@ import VideoViewport, { type VideoViewportRef } from './player/VideoViewport';
 import Controls from './player/Controls';
 import SimpleDrawingCanvas from '../annot/SimpleDrawingCanvas';
 import AnnotationToolbar from '../annot/AnnotationToolbar';
-import VideoHUD from './VideoHUD';
 import { useVideoStore, useAnnotationStore, useUIStore, useComparisonStore } from '../../state/store';
 import { useObjectUrl } from '../../hooks/useObjectUrl';
 import { useHotkeys } from '../../lib/useHotkeys';
 
 interface ComparisonVideoPlayerProps {
   className?: string;
+  onVideo2Change?: (setVideo2: (file: File) => void) => void;
 }
 
 // Split view component with independent controls
@@ -89,16 +89,17 @@ const SplitVideoView: React.FC<{
   };
 
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="aspect-[16/9] bg-black rounded-lg flex gap-2 p-2">
       {/* Video 1 */}
-      <div className="space-y-2">
-        <div className="relative bg-black rounded-lg overflow-hidden">
+      <div className="flex-1 flex flex-col">
+        <div className="relative flex-1 bg-gray-900 rounded overflow-hidden flex items-center justify-center">
           <div className="absolute top-2 left-2 z-10 bg-black/75 px-2 py-1 rounded text-xs text-white">
             Video 1
           </div>
           <VideoViewport
             ref={viewport1Ref}
             src={video1Url}
+            className="w-full h-full"
             onLoadedMetadata={(e) => {
               const video = e.currentTarget;
               setVideo1State(prev => ({ ...prev, duration: video.duration }));
@@ -111,31 +112,32 @@ const SplitVideoView: React.FC<{
             onPause={() => setVideo1State(prev => ({ ...prev, isPlaying: false }))}
             onEnded={() => setVideo1State(prev => ({ ...prev, isPlaying: false }))}
           />
+          <SimpleDrawingCanvas videoElement={viewport1Ref.current?.video || null} />
         </div>
         
         {/* Video 1 Controls */}
-        <div className="bg-gray-800 rounded p-2 space-y-1">
-          <div className="flex items-center gap-2">
+        <div className="bg-gray-800 rounded p-1 mt-1">
+          <div className="flex items-center gap-1">
             <button
               onClick={handleVideo1PlayPause}
-              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs"
+              className="px-1 py-0.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs"
             >
               {video1State.isPlaying ? '⏸' : '▶'}
             </button>
             <button
               onClick={() => handleVideo1FrameStep(-1)}
-              className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs"
+              className="px-1 py-0.5 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs"
             >
               [
             </button>
             <button
               onClick={() => handleVideo1FrameStep(1)}
-              className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs"
+              className="px-1 py-0.5 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs"
             >
               ]
             </button>
             <span className="text-xs text-gray-400">
-              {formatTime(video1State.currentTime)} / {formatTime(video1State.duration)}
+              {formatTime(video1State.currentTime)}
             </span>
           </div>
           <input
@@ -151,14 +153,15 @@ const SplitVideoView: React.FC<{
       </div>
 
       {/* Video 2 */}
-      <div className="space-y-2">
-        <div className="relative bg-black rounded-lg overflow-hidden">
+      <div className="flex-1 flex flex-col">
+        <div className="relative flex-1 bg-gray-900 rounded overflow-hidden flex items-center justify-center">
           <div className="absolute top-2 left-2 z-10 bg-black/75 px-2 py-1 rounded text-xs text-white">
             Video 2
           </div>
           <VideoViewport
             ref={viewport2Ref}
             src={video2Url}
+            className="w-full h-full"
             onLoadedMetadata={(e) => {
               const video = e.currentTarget;
               setVideo2State(prev => ({ ...prev, duration: video.duration }));
@@ -171,31 +174,32 @@ const SplitVideoView: React.FC<{
             onPause={() => setVideo2State(prev => ({ ...prev, isPlaying: false }))}
             onEnded={() => setVideo2State(prev => ({ ...prev, isPlaying: false }))}
           />
+          <SimpleDrawingCanvas videoElement={viewport2Ref.current?.video || null} />
         </div>
         
         {/* Video 2 Controls */}
-        <div className="bg-gray-800 rounded p-2 space-y-1">
-          <div className="flex items-center gap-2">
+        <div className="bg-gray-800 rounded p-1 mt-1">
+          <div className="flex items-center gap-1">
             <button
               onClick={handleVideo2PlayPause}
-              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs"
+              className="px-1 py-0.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs"
             >
               {video2State.isPlaying ? '⏸' : '▶'}
             </button>
             <button
               onClick={() => handleVideo2FrameStep(-1)}
-              className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs"
+              className="px-1 py-0.5 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs"
             >
               [
             </button>
             <button
               onClick={() => handleVideo2FrameStep(1)}
-              className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs"
+              className="px-1 py-0.5 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs"
             >
               ]
             </button>
             <span className="text-xs text-gray-400">
-              {formatTime(video2State.currentTime)} / {formatTime(video2State.duration)}
+              {formatTime(video2State.currentTime)}
             </span>
           </div>
           <input
@@ -213,7 +217,7 @@ const SplitVideoView: React.FC<{
   );
 };
 
-const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className = '' }) => {
+const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className = '', onVideo2Change }) => {
   const [video1File, setVideo1File] = useState<File | null>(null);
   const [video2File, setVideo2File] = useState<File | null>(null);
   const [activeVideo, setActiveVideo] = useState<1 | 2>(1);
@@ -230,7 +234,13 @@ const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className
   const video2Url = useObjectUrl(video2File);
 
   const { viewMode, setViewMode } = useComparisonStore();
-  const [showAnnotations, setShowAnnotations] = useState(true);
+
+  // Expose setVideo2File to parent component
+  useEffect(() => {
+    if (onVideo2Change) {
+      onVideo2Change(setVideo2File);
+    }
+  }, [onVideo2Change]);
 
   // Use existing video store for main controls
   const {
@@ -260,7 +270,6 @@ const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className
     redo,
   } = useAnnotationStore();
 
-  const { showStats, setShowStats } = useUIStore();
 
   // File input handlers
   const handleVideo1Select = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -549,26 +558,6 @@ const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className
       <ViewModeToggle />
       
       <div className="relative bg-black rounded-lg overflow-hidden">
-        {showAnnotations && viewMode !== 'split' && <AnnotationToolbar />}
-
-        <div className="absolute top-2 right-2 z-10 flex gap-2">
-          {viewMode !== 'split' && (
-            <button
-              onClick={() => setShowAnnotations(!showAnnotations)}
-              className="bg-gray-800 text-white px-3 py-1 rounded text-sm hover:bg-gray-700"
-              title="Toggle Annotations (A)"
-            >
-              Annotations: {showAnnotations ? 'ON' : 'OFF'}
-            </button>
-          )}
-          <button
-            onClick={() => setShowStats(!showStats)}
-            className="bg-gray-800 text-white px-3 py-1 rounded text-sm hover:bg-gray-700"
-            title="Toggle HUD (H)"
-          >
-            HUD: {showStats ? 'ON' : 'OFF'}
-          </button>
-        </div>
 
         <div ref={containerRef} className="relative bg-black rounded-lg overflow-hidden">
           {viewMode === 'video1' && video1File && (
@@ -582,7 +571,7 @@ const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className
                 onPause={pause}
                 onEnded={pause}
               />
-              {showAnnotations && video1Meta && (
+              {video1Meta && (
                 <SimpleDrawingCanvas videoElement={viewport1Ref.current?.video || null} />
               )}
             </>
@@ -599,7 +588,7 @@ const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className
                 onPause={pause}
                 onEnded={pause}
               />
-              {showAnnotations && video2Meta && (
+              {video2Meta && (
                 <SimpleDrawingCanvas videoElement={viewport2Ref.current?.video || null} />
               )}
             </>
@@ -620,23 +609,30 @@ const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className
             </div>
           )}
 
-          {showStats && <VideoHUD />}
         </div>
       </div>
 
-      <Controls
-        isPlaying={playback.isPlaying}
-        currentTime={playback.currentTime}
-        duration={metadata?.duration || 0}
-        playbackRate={playback.playbackRate}
-        frameRate={metadata?.frameRate || 30}
-        isReady={!!metadata}
-        onPlayPause={handlePlayPause}
-        onSeek={handleSeek}
-        onSeekByFrames={handleSeekByFrames}
-        onSeekBySeconds={handleSeekBySeconds}
-        onPlaybackRateChange={handlePlaybackRateChange}
-      />
+      {/* Annotation Toolbar - always show when videos are loaded */}
+      {(video1File || video2File) && (
+        <AnnotationToolbar />
+      )}
+
+      {/* Only show master controls for single video views */}
+      {viewMode !== 'split' && (
+        <Controls
+          isPlaying={playback.isPlaying}
+          currentTime={playback.currentTime}
+          duration={metadata?.duration || 0}
+          playbackRate={playback.playbackRate}
+          frameRate={metadata?.frameRate || 30}
+          isReady={!!metadata}
+          onPlayPause={handlePlayPause}
+          onSeek={handleSeek}
+          onSeekByFrames={handleSeekByFrames}
+          onSeekBySeconds={handleSeekBySeconds}
+          onPlaybackRateChange={handlePlaybackRateChange}
+        />
+      )}
 
       {/* Keyboard shortcuts hint */}
       <div className="text-center text-xs text-gray-500">
