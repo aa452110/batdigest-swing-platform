@@ -11,6 +11,9 @@ with zipfile.ZipFile(ZIP_FILENAME, 'w', zipfile.ZIP_DEFLATED) as zipf:
         # Exclude node_modules directory
         dirs[:] = [d for d in dirs if d != 'node_modules']
         for file in files:
+            # Skip MP4 files (reference videos)
+            if file.endswith('.MP4') or file.endswith('.mp4'):
+                continue
             file_path = os.path.join(root, file)
             arcname = os.path.relpath(file_path, FOLDER_TO_ZIP)
             zipf.write(file_path, arcname)

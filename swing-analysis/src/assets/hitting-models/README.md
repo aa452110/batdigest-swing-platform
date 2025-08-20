@@ -2,11 +2,6 @@
 
 This directory contains reference hitting model videos for comparison analysis.
 
-## Folder Structure:
-- `mlb/` - Professional MLB player swings
-- `college/` - College level swings  
-- `youth/` - Youth player examples
-
 ## Recommended Video Format:
 - **Container:** MP4
 - **Codec:** H.264 (AVC)
@@ -16,7 +11,7 @@ This directory contains reference hitting model videos for comparison analysis.
 - **Bitrate:** 2-5 Mbps
 
 ## Adding Videos:
-1. Drop your .mp4 files into the appropriate subfolder
+1. Drop your .mp4 files into this folder
 2. Update `/src/modules/video/ReferenceVideos.tsx` with the video filenames
 3. Videos will appear in the Reference Videos list in the app
 
