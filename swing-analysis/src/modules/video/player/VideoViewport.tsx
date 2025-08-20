@@ -72,7 +72,8 @@ const VideoViewport = forwardRef<VideoViewportRef, VideoViewportProps>(
 
     // Handle zoom with scroll wheel
     const handleWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
-      e.preventDefault();
+      // Can't prevent default in React wheel events due to passive listener
+      // e.preventDefault();
       e.stopPropagation();
       
       // Much smaller increments for finer control
@@ -157,13 +158,21 @@ const VideoViewport = forwardRef<VideoViewportRef, VideoViewportProps>(
     return (
       <div
         ref={containerRef}
-        className={`relative bg-black rounded-lg overflow-hidden ${className}`}
+        className="relative bg-black rounded-lg overflow-hidden"
         onWheel={handleWheel}
         onMouseMove={handleMouseMove}
         onDoubleClick={handleDoubleClick}
         onKeyDown={handleKeyDown}
         tabIndex={0}
-        style={{ cursor: zoom > 1 ? 'move' : 'default' }}
+        style={{ 
+          cursor: zoom > 1 ? 'move' : 'default',
+          width: '1280px',
+          height: '720px',
+          minWidth: '1280px',
+          maxWidth: '1280px',
+          minHeight: '720px',
+          maxHeight: '720px'
+        }}
       >
         {/* Zoom indicator */}
         {zoom > 1 && (
@@ -173,7 +182,7 @@ const VideoViewport = forwardRef<VideoViewportRef, VideoViewportProps>(
         )}
         
         <div 
-          className={`relative ${className?.includes('w-full h-full') ? 'w-full h-full' : getAspectRatioClass()} max-w-full mx-auto bg-black`} 
+          className="relative w-full h-full bg-black" 
           data-video-container="true"
         >
           <video

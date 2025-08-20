@@ -9,7 +9,24 @@ import { useHotkeys } from '../../lib/useHotkeys';
 
 interface ComparisonVideoPlayerProps {
   className?: string;
+  onVideo1Change?: (setVideo1: (file: File) => void) => void;
   onVideo2Change?: (setVideo2: (file: File) => void) => void;
+  onStateChange?: (state: {
+    video1File: File | null;
+    video2File: File | null;
+    handleVideo1Select: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    handleVideo2Select: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    playback: any;
+    metadata: any;
+    handlePlayPause: () => void;
+    handleSeek: (time: number) => void;
+    handleSeekByFrames: (frames: number) => void;
+    handleSeekBySeconds: (seconds: number) => void;
+    handlePlaybackRateChange: (rate: number) => void;
+    viewMode: string;
+    video1Controls?: any;
+    video2Controls?: any;
+  }) => void;
 }
 
 // Split view component with independent controls
@@ -18,7 +35,11 @@ const SplitVideoView: React.FC<{
   video2File: File;
   video1Url: string | null;
   video2Url: string | null;
-}> = ({ video1File, video2File, video1Url, video2Url }) => {
+  viewport1Ref: React.RefObject<VideoViewportRef>;
+  viewport2Ref: React.RefObject<VideoViewportRef>;
+  onVideo1StateChange: (state: any) => void;
+  onVideo2StateChange: (state: any) => void;
+}> = ({ video1File, video2File, video1Url, video2Url, viewport1Ref, viewport2Ref, onVideo1StateChange, onVideo2StateChange }) => {
   // Independent states for each video
   const [video1State, setVideo1State] = useState({
     isPlaying: false,
@@ -31,8 +52,16 @@ const SplitVideoView: React.FC<{
     duration: 0,
   });
 
-  const viewport1Ref = useRef<VideoViewportRef>(null);
-  const viewport2Ref = useRef<VideoViewportRef>(null);
+  // Use passed refs instead of local ones
+  
+  // Notify parent of state changes
+  useEffect(() => {
+    onVideo1StateChange(video1State);
+  }, [video1State, onVideo1StateChange]);
+  
+  useEffect(() => {
+    onVideo2StateChange(video2State);
+  }, [video2State, onVideo2StateChange]);
 
   // Video 1 controls
   const handleVideo1PlayPause = async () => {
@@ -89,10 +118,17 @@ const SplitVideoView: React.FC<{
   };
 
   return (
-    <div className="aspect-[16/9] bg-black rounded-lg flex gap-2 p-2">
-      {/* Video 1 */}
-      <div className="flex-1 flex flex-col">
-        <div className="relative flex-1 bg-gray-900 rounded overflow-hidden flex items-center justify-center">
+    <>
+      <div style={{ 
+        width: '1280px', 
+        height: '720px',
+        minWidth: '1280px',
+        maxWidth: '1280px',
+        minHeight: '720px',
+        maxHeight: '720px'
+      }} className="bg-black rounded-lg flex gap-2 p-2" data-video-container="true">
+        {/* Video 1 */}
+        <div className="flex-1 relative bg-gray-900 rounded overflow-hidden flex items-center justify-center">
           <div className="absolute top-2 left-2 z-10 bg-black/75 px-2 py-1 rounded text-xs text-white">
             Video 1
           </div>
@@ -114,9 +150,36 @@ const SplitVideoView: React.FC<{
           />
           <SimpleDrawingCanvas videoElement={viewport1Ref.current?.video || null} />
         </div>
-        
+
+        {/* Video 2 */}
+        <div className="flex-1 relative bg-gray-900 rounded overflow-hidden flex items-center justify-center">
+          <div className="absolute top-2 left-2 z-10 bg-black/75 px-2 py-1 rounded text-xs text-white">
+            Video 2
+          </div>
+          <VideoViewport
+            ref={viewport2Ref}
+            src={video2Url}
+            className="w-full h-full"
+            onLoadedMetadata={(e) => {
+              const video = e.currentTarget;
+              setVideo2State(prev => ({ ...prev, duration: video.duration }));
+            }}
+            onTimeUpdate={(e) => {
+              const video = e.currentTarget;
+              setVideo2State(prev => ({ ...prev, currentTime: video.currentTime }));
+            }}
+            onPlay={() => setVideo2State(prev => ({ ...prev, isPlaying: true }))}
+            onPause={() => setVideo2State(prev => ({ ...prev, isPlaying: false }))}
+            onEnded={() => setVideo2State(prev => ({ ...prev, isPlaying: false }))}
+          />
+          <SimpleDrawingCanvas videoElement={viewport2Ref.current?.video || null} />
+        </div>
+      </div>
+      
+      {/* Controls BELOW the video container */}
+      <div className="flex gap-2 mt-2" style={{ width: '1280px' }}>
         {/* Video 1 Controls */}
-        <div className="bg-gray-800 rounded p-1 mt-1">
+        <div className="flex-1 bg-gray-800 rounded p-1">
           <div className="flex items-center gap-1">
             <button
               onClick={handleVideo1PlayPause}
@@ -139,46 +202,20 @@ const SplitVideoView: React.FC<{
             <span className="text-xs text-gray-400">
               {formatTime(video1State.currentTime)}
             </span>
+            <input
+              type="range"
+              min={0}
+              max={video1State.duration || 0}
+              step={0.01}
+              value={video1State.currentTime}
+              onChange={(e) => handleVideo1Seek(parseFloat(e.target.value))}
+              className="flex-1 h-1"
+            />
           </div>
-          <input
-            type="range"
-            min={0}
-            max={video1State.duration || 0}
-            step={0.01}
-            value={video1State.currentTime}
-            onChange={(e) => handleVideo1Seek(parseFloat(e.target.value))}
-            className="w-full h-1"
-          />
         </div>
-      </div>
 
-      {/* Video 2 */}
-      <div className="flex-1 flex flex-col">
-        <div className="relative flex-1 bg-gray-900 rounded overflow-hidden flex items-center justify-center">
-          <div className="absolute top-2 left-2 z-10 bg-black/75 px-2 py-1 rounded text-xs text-white">
-            Video 2
-          </div>
-          <VideoViewport
-            ref={viewport2Ref}
-            src={video2Url}
-            className="w-full h-full"
-            onLoadedMetadata={(e) => {
-              const video = e.currentTarget;
-              setVideo2State(prev => ({ ...prev, duration: video.duration }));
-            }}
-            onTimeUpdate={(e) => {
-              const video = e.currentTarget;
-              setVideo2State(prev => ({ ...prev, currentTime: video.currentTime }));
-            }}
-            onPlay={() => setVideo2State(prev => ({ ...prev, isPlaying: true }))}
-            onPause={() => setVideo2State(prev => ({ ...prev, isPlaying: false }))}
-            onEnded={() => setVideo2State(prev => ({ ...prev, isPlaying: false }))}
-          />
-          <SimpleDrawingCanvas videoElement={viewport2Ref.current?.video || null} />
-        </div>
-        
         {/* Video 2 Controls */}
-        <div className="bg-gray-800 rounded p-1 mt-1">
+        <div className="flex-1 bg-gray-800 rounded p-1">
           <div className="flex items-center gap-1">
             <button
               onClick={handleVideo2PlayPause}
@@ -201,23 +238,23 @@ const SplitVideoView: React.FC<{
             <span className="text-xs text-gray-400">
               {formatTime(video2State.currentTime)}
             </span>
+            <input
+              type="range"
+              min={0}
+              max={video2State.duration || 0}
+              step={0.01}
+              value={video2State.currentTime}
+              onChange={(e) => handleVideo2Seek(parseFloat(e.target.value))}
+              className="flex-1 h-1"
+            />
           </div>
-          <input
-            type="range"
-            min={0}
-            max={video2State.duration || 0}
-            step={0.01}
-            value={video2State.currentTime}
-            onChange={(e) => handleVideo2Seek(parseFloat(e.target.value))}
-            className="w-full h-1"
-          />
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
-const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className = '', onVideo2Change }) => {
+const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className = '', onVideo1Change, onVideo2Change, onStateChange }) => {
   const [video1File, setVideo1File] = useState<File | null>(null);
   const [video2File, setVideo2File] = useState<File | null>(null);
   const [activeVideo, setActiveVideo] = useState<1 | 2>(1);
@@ -225,6 +262,18 @@ const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className
   // Track metadata for each video separately
   const [video1Meta, setVideo1Meta] = useState<any>(null);
   const [video2Meta, setVideo2Meta] = useState<any>(null);
+  
+  // Track state for split view controls
+  const [video1State, setVideo1State] = useState({
+    isPlaying: false,
+    currentTime: 0,
+    duration: 0,
+  });
+  const [video2State, setVideo2State] = useState({
+    isPlaying: false,
+    currentTime: 0,
+    duration: 0,
+  });
   
   const viewport1Ref = useRef<VideoViewportRef>(null);
   const viewport2Ref = useRef<VideoViewportRef>(null);
@@ -234,13 +283,6 @@ const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className
   const video2Url = useObjectUrl(video2File);
 
   const { viewMode, setViewMode } = useComparisonStore();
-
-  // Expose setVideo2File to parent component
-  useEffect(() => {
-    if (onVideo2Change) {
-      onVideo2Change(setVideo2File);
-    }
-  }, [onVideo2Change]);
 
   // Use existing video store for main controls
   const {
@@ -270,6 +312,64 @@ const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className
     redo,
   } = useAnnotationStore();
 
+  // Expose setVideo1File and setVideo2File to parent component
+  useEffect(() => {
+    if (onVideo1Change) {
+      // Use setTimeout to avoid setState during render
+      const timer = setTimeout(() => {
+        onVideo1Change(setVideo1File);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [onVideo1Change]);
+
+  useEffect(() => {
+    if (onVideo2Change) {
+      // Use setTimeout to avoid setState during render
+      const timer = setTimeout(() => {
+        onVideo2Change(setVideo2File);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [onVideo2Change]);
+
+  // Expose state and handlers to parent
+  useEffect(() => {
+    if (onStateChange) {
+      const timer = setTimeout(() => {
+        onStateChange({
+          video1File,
+          video2File,
+          handleVideo1Select,
+          handleVideo2Select,
+          playback,
+          metadata,
+          handlePlayPause,
+          handleSeek,
+          handleSeekByFrames,
+          handleSeekBySeconds,
+          handlePlaybackRateChange,
+          viewMode,
+          video1Controls: {
+            state: video1State,
+            meta: video1Meta,
+            onPlayPause: handleVideo1PlayPause,
+            onSeek: handleVideo1Seek,
+            onFrameStep: handleVideo1FrameStep
+          },
+          video2Controls: {
+            state: video2State,
+            meta: video2Meta,
+            onPlayPause: handleVideo2PlayPause,
+            onSeek: handleVideo2Seek,
+            onFrameStep: handleVideo2FrameStep
+          }
+        });
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [onStateChange, video1File, video2File, playback, metadata, viewMode, video1State, video2State, video1Meta, video2Meta]);
+
 
   // File input handlers
   const handleVideo1Select = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -297,6 +397,55 @@ const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className
     return activeVideo === 1 ? video1File : video2File;
   };
 
+  // Individual video controls for split view
+  const handleVideo1PlayPause = async () => {
+    if (!viewport1Ref.current) return;
+    if (video1State.isPlaying) {
+      viewport1Ref.current.pause();
+      setVideo1State(prev => ({ ...prev, isPlaying: false }));
+    } else {
+      await viewport1Ref.current.play();
+      setVideo1State(prev => ({ ...prev, isPlaying: true }));
+    }
+  };
+
+  const handleVideo1Seek = (time: number) => {
+    if (!viewport1Ref.current) return;
+    viewport1Ref.current.seekTo(time);
+    setVideo1State(prev => ({ ...prev, currentTime: time }));
+  };
+
+  const handleVideo1FrameStep = (frames: number) => {
+    if (!viewport1Ref.current || !video1Meta) return;
+    const frameRate = video1Meta.frameRate || 30;
+    const newTime = video1State.currentTime + (frames / frameRate);
+    handleVideo1Seek(Math.max(0, Math.min(newTime, video1State.duration)));
+  };
+
+  const handleVideo2PlayPause = async () => {
+    if (!viewport2Ref.current) return;
+    if (video2State.isPlaying) {
+      viewport2Ref.current.pause();
+      setVideo2State(prev => ({ ...prev, isPlaying: false }));
+    } else {
+      await viewport2Ref.current.play();
+      setVideo2State(prev => ({ ...prev, isPlaying: true }));
+    }
+  };
+
+  const handleVideo2Seek = (time: number) => {
+    if (!viewport2Ref.current) return;
+    viewport2Ref.current.seekTo(time);
+    setVideo2State(prev => ({ ...prev, currentTime: time }));
+  };
+
+  const handleVideo2FrameStep = (frames: number) => {
+    if (!viewport2Ref.current || !video2Meta) return;
+    const frameRate = video2Meta.frameRate || 30;
+    const newTime = video2State.currentTime + (frames / frameRate);
+    handleVideo2Seek(Math.max(0, Math.min(newTime, video2State.duration)));
+  };
+
   // Event handlers
   const handleVideo1Metadata = useCallback(
     (e: React.SyntheticEvent<HTMLVideoElement>) => {
@@ -309,6 +458,7 @@ const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className
         aspectRatio: `${video.videoWidth}:${video.videoHeight}`,
       };
       setVideo1Meta(meta);
+      setVideo1State(prev => ({ ...prev, duration: video.duration }));
       if (activeVideo === 1 || viewMode === 'video1') {
         setMetadata(meta);
       }
@@ -327,6 +477,7 @@ const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className
         aspectRatio: `${video.videoWidth}:${video.videoHeight}`,
       };
       setVideo2Meta(meta);
+      setVideo2State(prev => ({ ...prev, duration: video.duration }));
       if (activeVideo === 2 || viewMode === 'video2') {
         setMetadata(meta);
       }
@@ -399,7 +550,7 @@ const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className
 
   // View mode controls
   const ViewModeToggle = () => (
-    <div className="bg-gray-800 rounded-lg p-2 mb-4">
+    <div className="bg-gray-800 rounded-lg p-2">
       <div className="flex items-center gap-2 mb-2">
         <span className="text-sm text-gray-400">Videos:</span>
         <label className="flex items-center gap-2">
@@ -554,22 +705,57 @@ const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className
   };
 
   return (
-    <div className={`space-y-4 ${className}`}>
-      <ViewModeToggle />
-      
-      <div className="relative bg-black rounded-lg overflow-hidden">
-
-        <div ref={containerRef} className="relative bg-black rounded-lg overflow-hidden">
+    <div className={className}>
+      <div ref={containerRef} style={{ 
+        width: '1280px', 
+        height: '720px',
+        minWidth: '1280px',
+        maxWidth: '1280px', 
+        minHeight: '720px',
+        maxHeight: '720px',
+        flexShrink: 0
+      }} className="relative bg-black rounded-lg overflow-hidden">
           {viewMode === 'video1' && video1File && (
             <>
               <VideoViewport
                 ref={viewport1Ref}
                 src={video1Url}
                 onLoadedMetadata={handleVideo1Metadata}
-                onTimeUpdate={handleTimeUpdate}
-                onPlay={play}
-                onPause={pause}
-                onEnded={pause}
+                onTimeUpdate={(e) => {
+                  handleTimeUpdate(e);
+                  if (e && e.currentTarget) {
+                    const currentTime = e.currentTarget.currentTime;
+                    setVideo1State(prev => ({
+                      isPlaying: prev?.isPlaying ?? false,
+                      currentTime: currentTime,
+                      duration: prev?.duration ?? 0
+                    }));
+                  }
+                }}
+                onPlay={() => {
+                  play();
+                  setVideo1State(prev => ({ 
+                    isPlaying: true,
+                    currentTime: prev?.currentTime ?? 0,
+                    duration: prev?.duration ?? 0
+                  }));
+                }}
+                onPause={() => {
+                  pause();
+                  setVideo1State(prev => ({ 
+                    isPlaying: false,
+                    currentTime: prev?.currentTime ?? 0,
+                    duration: prev?.duration ?? 0
+                  }));
+                }}
+                onEnded={() => {
+                  pause();
+                  setVideo1State(prev => ({ 
+                    isPlaying: false,
+                    currentTime: prev?.currentTime ?? 0,
+                    duration: prev?.duration ?? 0
+                  }));
+                }}
               />
               {video1Meta && (
                 <SimpleDrawingCanvas videoElement={viewport1Ref.current?.video || null} />
@@ -583,10 +769,41 @@ const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className
                 ref={viewport2Ref}
                 src={video2Url}
                 onLoadedMetadata={handleVideo2Metadata}
-                onTimeUpdate={handleTimeUpdate}
-                onPlay={play}
-                onPause={pause}
-                onEnded={pause}
+                onTimeUpdate={(e) => {
+                  handleTimeUpdate(e);
+                  if (e && e.currentTarget) {
+                    const currentTime = e.currentTarget.currentTime;
+                    setVideo2State(prev => ({
+                      isPlaying: prev?.isPlaying ?? false,
+                      currentTime: currentTime,
+                      duration: prev?.duration ?? 0
+                    }));
+                  }
+                }}
+                onPlay={() => {
+                  play();
+                  setVideo2State(prev => ({ 
+                    isPlaying: true,
+                    currentTime: prev?.currentTime ?? 0,
+                    duration: prev?.duration ?? 0
+                  }));
+                }}
+                onPause={() => {
+                  pause();
+                  setVideo2State(prev => ({ 
+                    isPlaying: false,
+                    currentTime: prev?.currentTime ?? 0,
+                    duration: prev?.duration ?? 0
+                  }));
+                }}
+                onEnded={() => {
+                  pause();
+                  setVideo2State(prev => ({ 
+                    isPlaying: false,
+                    currentTime: prev?.currentTime ?? 0,
+                    duration: prev?.duration ?? 0
+                  }));
+                }}
               />
               {video2Meta && (
                 <SimpleDrawingCanvas videoElement={viewport2Ref.current?.video || null} />
@@ -600,48 +817,21 @@ const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className
               video2File={video2File}
               video1Url={video1Url}
               video2Url={video2Url}
+              viewport1Ref={viewport1Ref}
+              viewport2Ref={viewport2Ref}
+              onVideo1StateChange={(state) => setVideo1State(state)}
+              onVideo2StateChange={(state) => setVideo2State(state)}
             />
           )}
 
           {!video1File && !video2File && (
-            <div className="flex items-center justify-center h-64 text-gray-400">
+            <div className="flex items-center justify-center h-full text-gray-400">
               Load videos above to begin
             </div>
           )}
-
-        </div>
       </div>
 
-      {/* Annotation Toolbar - always show when videos are loaded */}
-      {(video1File || video2File) && (
-        <AnnotationToolbar />
-      )}
 
-      {/* Only show master controls for single video views */}
-      {viewMode !== 'split' && (
-        <Controls
-          isPlaying={playback.isPlaying}
-          currentTime={playback.currentTime}
-          duration={metadata?.duration || 0}
-          playbackRate={playback.playbackRate}
-          frameRate={metadata?.frameRate || 30}
-          isReady={!!metadata}
-          onPlayPause={handlePlayPause}
-          onSeek={handleSeek}
-          onSeekByFrames={handleSeekByFrames}
-          onSeekBySeconds={handleSeekBySeconds}
-          onPlaybackRateChange={handlePlaybackRateChange}
-        />
-      )}
-
-      {/* Keyboard shortcuts hint */}
-      <div className="text-center text-xs text-gray-500">
-        <span className="inline-block px-2 py-1 bg-gray-800 rounded mr-2">1</span> Video 1
-        <span className="inline-block px-2 py-1 bg-gray-800 rounded mx-2">2</span> Video 2
-        <span className="inline-block px-2 py-1 bg-gray-800 rounded mx-2">3</span> Split View
-        <span className="inline-block px-2 py-1 bg-gray-800 rounded mx-2">Space</span> Play/Pause
-        <span className="inline-block px-2 py-1 bg-gray-800 rounded mx-2">←/→</span> Frame Step
-      </div>
     </div>
   );
 };
