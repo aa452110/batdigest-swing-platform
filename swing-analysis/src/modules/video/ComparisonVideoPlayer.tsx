@@ -2,6 +2,7 @@ import React, { useRef, useCallback, useEffect, useState } from 'react';
 import VideoViewport, { type VideoViewportRef } from './player/VideoViewport';
 import Controls from './player/Controls';
 import SimpleDrawingCanvas from '../annot/SimpleDrawingCanvas';
+import SeparateDrawingCanvas from '../annot/SeparateDrawingCanvas';
 import AnnotationToolbar from '../annot/AnnotationToolbar';
 import { useVideoStore, useAnnotationStore, useUIStore, useComparisonStore } from '../../state/store';
 import { useObjectUrl } from '../../hooks/useObjectUrl';
@@ -125,10 +126,14 @@ const SplitVideoView: React.FC<{
         minWidth: '1280px',
         maxWidth: '1280px',
         minHeight: '720px',
-        maxHeight: '720px'
+        maxHeight: '720px',
+        position: 'relative'
       }} className="bg-black rounded-lg flex gap-2 p-2" data-video-container="true">
         {/* Video 1 */}
-        <div className="flex-1 relative bg-gray-900 rounded overflow-hidden flex items-center justify-center">
+        <div 
+          className="flex-1 relative bg-gray-900 rounded overflow-hidden flex items-center justify-center"
+          onClick={() => viewport1Ref.current?.container?.focus()}
+        >
           <div className="absolute top-2 left-2 z-10 bg-black/75 px-2 py-1 rounded text-xs text-white">
             Video 1
           </div>
@@ -136,6 +141,7 @@ const SplitVideoView: React.FC<{
             ref={viewport1Ref}
             src={video1Url}
             className="w-full h-full"
+            splitView={true}
             onLoadedMetadata={(e) => {
               const video = e.currentTarget;
               setVideo1State(prev => ({ ...prev, duration: video.duration }));
@@ -148,11 +154,14 @@ const SplitVideoView: React.FC<{
             onPause={() => setVideo1State(prev => ({ ...prev, isPlaying: false }))}
             onEnded={() => setVideo1State(prev => ({ ...prev, isPlaying: false }))}
           />
-          <SimpleDrawingCanvas videoElement={viewport1Ref.current?.video || null} />
+          {/* Temporarily disable annotations in split view until we fix them */}
         </div>
 
         {/* Video 2 */}
-        <div className="flex-1 relative bg-gray-900 rounded overflow-hidden flex items-center justify-center">
+        <div 
+          className="flex-1 relative bg-gray-900 rounded overflow-hidden flex items-center justify-center"
+          onClick={() => viewport2Ref.current?.container?.focus()}
+        >
           <div className="absolute top-2 left-2 z-10 bg-black/75 px-2 py-1 rounded text-xs text-white">
             Video 2
           </div>
@@ -160,6 +169,7 @@ const SplitVideoView: React.FC<{
             ref={viewport2Ref}
             src={video2Url}
             className="w-full h-full"
+            splitView={true}
             onLoadedMetadata={(e) => {
               const video = e.currentTarget;
               setVideo2State(prev => ({ ...prev, duration: video.duration }));
@@ -172,8 +182,11 @@ const SplitVideoView: React.FC<{
             onPause={() => setVideo2State(prev => ({ ...prev, isPlaying: false }))}
             onEnded={() => setVideo2State(prev => ({ ...prev, isPlaying: false }))}
           />
-          <SimpleDrawingCanvas videoElement={viewport2Ref.current?.video || null} />
+          {/* Temporarily disable annotations in split view until we fix them */}
         </div>
+        
+        {/* Single annotation canvas over entire split view */}
+        <SimpleDrawingCanvas videoElement={viewport1Ref.current?.video || viewport2Ref.current?.video || null} />
       </div>
       
       {/* Controls BELOW the video container */}

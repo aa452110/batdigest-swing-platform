@@ -19,6 +19,7 @@ interface VideoViewportProps {
   onEnded?: () => void;
   onError?: (error: string) => void;
   className?: string;
+  splitView?: boolean; // Add flag for split view sizing
 }
 
 const VideoViewport = forwardRef<VideoViewportRef, VideoViewportProps>(
@@ -33,6 +34,7 @@ const VideoViewport = forwardRef<VideoViewportRef, VideoViewportProps>(
       onEnded,
       onError,
       className = '',
+      splitView = false,
     },
     ref
   ) => {
@@ -164,7 +166,11 @@ const VideoViewport = forwardRef<VideoViewportRef, VideoViewportProps>(
         onDoubleClick={handleDoubleClick}
         onKeyDown={handleKeyDown}
         tabIndex={0}
-        style={{ 
+        style={splitView ? {
+          cursor: zoom > 1 ? 'move' : 'default',
+          width: '100%',
+          height: '100%'
+        } : { 
           cursor: zoom > 1 ? 'move' : 'default',
           width: '1280px',
           height: '720px',
