@@ -2,7 +2,7 @@
 
 ## Last Working Commit
 - **Date**: 2025-08-20
-- **Commit Hash**: 22aa8fa
+- **Commit Hash**: 8f3f617
 - **Branch**: main
 
 ## Current Features Working
@@ -14,6 +14,8 @@
 ✅ Frame-by-frame stepping with visual feedback
 ✅ Frame number display under timeline
 ✅ Videos locked at 1280x720 pixels (no resizing)
+✅ **Split view annotations** - Single canvas over both videos for comparisons
+✅ **Zoom in split view** - Click video to focus, then scroll or use +/- keys
 
 ### Recording
 ✅ Selectable area recording with green box overlay
