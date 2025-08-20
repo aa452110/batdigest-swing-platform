@@ -1,14 +1,13 @@
 import React from 'react';
 
-// For now, we'll define the videos here. When you add actual videos,
-// we'll import them properly
-const referenceVideos = [
-  { name: 'Proper Stance', file: 'stance.mp4' },
-  { name: 'Load Phase', file: 'load.mp4' },
-  { name: 'Contact Point', file: 'contact.mp4' },
-  { name: 'Follow Through', file: 'follow-through.mp4' },
-  { name: 'Full Swing - Front', file: 'full-swing-front.mp4' },
-  { name: 'Full Swing - Side', file: 'full-swing-side.mp4' },
+const referenceVideos: { name: string; file: string }[] = [
+  { name: 'Aaron Judge', file: 'Aaron_Judge.MP4' },
+  { name: 'Albert Pujols', file: 'Albert_Puljos.MP4' },
+  { name: 'Bryce Harper', file: 'Bryce_Harper.MP4' },
+  { name: 'Gunnar Henderson', file: 'Gunnar_Henderson.MP4' },
+  { name: 'Miguel Cabrera', file: 'Miguel_Cabrera.MP4' },
+  { name: 'Shohei Ohtani', file: 'Shohei_Ohtani.MP4' },
+  { name: 'Stephen Kwan', file: 'Stephen_Kwan.MP4' },
 ];
 
 interface ReferenceVideosProps {
@@ -32,15 +31,19 @@ const ReferenceVideos: React.FC<ReferenceVideosProps> = ({ onSelectVideo }) => {
     <div className="bg-gray-800 rounded-lg p-4">
       <h3 className="text-sm font-semibold text-gray-300 mb-3">Reference Videos</h3>
       <div className="space-y-1">
-        {referenceVideos.map((video) => (
-          <button
-            key={video.file}
-            onClick={() => handleVideoClick(video.file)}
-            className="w-full text-left px-3 py-2 text-sm text-gray-400 hover:bg-gray-700 hover:text-white rounded transition-colors"
-          >
-            {video.name}
-          </button>
-        ))}
+        {referenceVideos.length > 0 ? (
+          referenceVideos.map((video) => (
+            <button
+              key={video.file}
+              onClick={() => handleVideoClick(video.file)}
+              className="w-full text-left px-3 py-2 text-sm text-gray-400 hover:bg-gray-700 hover:text-white rounded transition-colors"
+            >
+              {video.name}
+            </button>
+          ))
+        ) : (
+          <p className="text-xs text-gray-500 italic">No reference videos added yet</p>
+        )}
       </div>
     </div>
   );
