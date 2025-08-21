@@ -126,29 +126,41 @@ const SimpleDrawingCanvas: React.FC<SimpleDrawingCanvasProps> = ({ videoElement 
     });
   }, [getAnnotationsAtTime, playback.currentTime]);
 
-  // Update canvas size to match video
+  // Update canvas size to match parent container (for split view)
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !videoElement) return;
+    if (!canvas) return;
     
     const updateSize = () => {
-      const rect = videoElement.getBoundingClientRect();
+      // Size to parent container instead of video element
+      const parent = canvas.parentElement;
+      if (!parent) return;
+      
+      const rect = parent.getBoundingClientRect();
       canvas.width = rect.width;
       canvas.height = rect.height;
       canvas.style.width = `${rect.width}px`;
       canvas.style.height = `${rect.height}px`;
+      
+      console.log('Canvas resized to:', { width: rect.width, height: rect.height });
       redraw();
     };
     
     updateSize();
     
-    // Update on video metadata load
-    videoElement.addEventListener('loadedmetadata', updateSize);
+    // Update on window resize
     window.addEventListener('resize', updateSize);
     
+    // Also update if video element changes
+    if (videoElement) {
+      videoElement.addEventListener('loadedmetadata', updateSize);
+    }
+    
     return () => {
-      videoElement.removeEventListener('loadedmetadata', updateSize);
       window.removeEventListener('resize', updateSize);
+      if (videoElement) {
+        videoElement.removeEventListener('loadedmetadata', updateSize);
+      }
     };
   }, [videoElement, redraw]);
 
@@ -158,6 +170,13 @@ const SimpleDrawingCanvas: React.FC<SimpleDrawingCanvasProps> = ({ videoElement 
   }, [redraw, annotations, playback.currentTime]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    console.log('Canvas handleMouseDown:', {
+      currentTool,
+      clientX: e.clientX,
+      clientY: e.clientY,
+      target: (e.target as HTMLElement).tagName
+    });
+    
     if (currentTool === 'select') return;
     
     const pos = getMousePos(e);
@@ -237,7 +256,7 @@ const SimpleDrawingCanvas: React.FC<SimpleDrawingCanvasProps> = ({ videoElement 
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 z-10"
+      className="absolute inset-0 z-50"
       style={{ pointerEvents: currentTool !== 'select' ? 'auto' : 'none' }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}

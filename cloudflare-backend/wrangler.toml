@@ -1,0 +1,36 @@
+name = "swing-analysis-api"
+main = "src/index.ts"
+compatibility_date = "2024-08-20"
+
+# Account ID (get from Cloudflare dashboard)
+account_id = "YOUR_ACCOUNT_ID"
+
+# R2 Bindings
+[[r2_buckets]]
+binding = "VIDEO_BUCKET"
+bucket_name = "swing-analysis-videos"
+
+# D1 Database Bindings  
+[[d1_databases]]
+binding = "DB"
+database_name = "swing-analysis"
+database_id = "YOUR_DATABASE_ID"
+
+# Queue Bindings
+[[queues.producers]]
+binding = "VIDEO_QUEUE"
+queue = "video-processing"
+
+[[queues.consumers]]
+queue = "video-processing"
+max_batch_size = 10
+max_batch_timeout = 30
+
+# Environment Variables
+[vars]
+ENVIRONMENT = "development"
+CORS_ORIGIN = "http://localhost:5001"
+
+# Production Environment
+[env.production]
+vars = { ENVIRONMENT = "production", CORS_ORIGIN = "https://analysis.batdigest.com" }

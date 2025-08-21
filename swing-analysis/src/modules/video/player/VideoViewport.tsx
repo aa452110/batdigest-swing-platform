@@ -1,5 +1,6 @@
 import React, { forwardRef, useImperativeHandle, useRef, useState, useCallback } from 'react';
 import type { AspectRatio } from '../../../types/media';
+import { useAnnotationStore } from '../../../state/store';
 
 export interface VideoViewportRef {
   video: HTMLVideoElement | null;
@@ -42,6 +43,7 @@ const VideoViewport = forwardRef<VideoViewportRef, VideoViewportProps>(
     const containerRef = useRef<HTMLDivElement>(null);
     const [zoom, setZoom] = useState(1);
     const [pan, setPan] = useState({ x: 0, y: 0 });
+    const { currentTool } = useAnnotationStore();
 
     useImperativeHandle(ref, () => ({
       video: videoRef.current,
@@ -117,6 +119,21 @@ const VideoViewport = forwardRef<VideoViewportRef, VideoViewportProps>(
 
     // Handle panning when zoomed
     const handleMouseMove = useCallback((e: React.MouseEvent) => {
+      // Debug logging
+      console.log('VideoViewport handleMouseMove:', {
+        currentTool,
+        zoom,
+        buttons: e.buttons,
+        target: (e.target as HTMLElement).tagName,
+        currentTarget: (e.currentTarget as HTMLElement).tagName
+      });
+      
+      // Skip panning if an annotation tool is active (not 'select')
+      if (currentTool !== 'select') {
+        console.log('Skipping pan - annotation tool active:', currentTool);
+        return;
+      }
+      
       if (zoom <= 1 || !e.buttons) return; // Only pan when zoomed in and mouse is pressed
       
       const container = containerRef.current;
@@ -136,7 +153,7 @@ const VideoViewport = forwardRef<VideoViewportRef, VideoViewportProps>(
         x: Math.max(-maxPanPercent, Math.min(maxPanPercent, prev.x + moveXPercent)),
         y: Math.max(-maxPanPercent, Math.min(maxPanPercent, prev.y + moveYPercent)),
       }));
-    }, [zoom]);
+    }, [zoom, currentTool]);
 
     // Reset zoom on double click
     const handleDoubleClick = useCallback(() => {
@@ -167,11 +184,11 @@ const VideoViewport = forwardRef<VideoViewportRef, VideoViewportProps>(
         onKeyDown={handleKeyDown}
         tabIndex={0}
         style={splitView ? {
-          cursor: zoom > 1 ? 'move' : 'default',
+          cursor: zoom > 1 && currentTool === 'select' ? 'move' : 'default',
           width: '100%',
           height: '100%'
         } : { 
-          cursor: zoom > 1 ? 'move' : 'default',
+          cursor: zoom > 1 && currentTool === 'select' ? 'move' : 'default',
           width: '1280px',
           height: '720px',
           minWidth: '1280px',
