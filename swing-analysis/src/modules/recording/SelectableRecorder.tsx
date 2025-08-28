@@ -1,6 +1,9 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
+import VideoReviewWithPlan from '../../components/VideoReviewWithPlan';
 
 const SelectableRecorder: React.FC = () => {
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<string>('');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -10,10 +13,16 @@ const SelectableRecorder: React.FC = () => {
   const recordedChunksRef = useRef<Blob[]>([]);
   
   const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
   const [hasSelected, setHasSelected] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [recordedSegments, setRecordedSegments] = useState<any[]>([]);
+  const [reviewingSegment, setReviewingSegment] = useState<any>(null);
+  const [showReview, setShowReview] = useState(false);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const recordingStartTimeRef = useRef<number>(0);
+  const pausedDurationRef = useRef<number>(0);
   
   // Selection box position and size
   const [selectionBox, setSelectionBox] = useState({
@@ -93,6 +102,104 @@ const SelectableRecorder: React.FC = () => {
     setIsSelecting(false);
     setHasSelected(true);
     console.log('Recording area selected:', selectionBox);
+  };
+
+  const uploadAnalysis = async (segment: any, hittingPlan: any = null) => {
+    try {
+      setIsUploading(true);
+      setUploadStatus('Preparing upload...');
+      
+      // Get submission info from session storage
+      const submissionData = sessionStorage.getItem('selectedSubmission');
+      console.log('Submission data from storage:', submissionData);
+      
+      // If no submission data, create a default one for testing
+      let submission;
+      if (!submissionData) {
+        console.warn('No submission data found in sessionStorage, using fallback');
+        // Try to extract submission ID from the video URL if it exists
+        const videoUrl = sessionStorage.getItem('selectedVideo');
+        if (videoUrl && videoUrl.includes('/api/video/stream/')) {
+          const submissionId = videoUrl.split('/').pop();
+          submission = { 
+            submissionId,
+            playerName: 'Unknown Player'
+          };
+        } else {
+          throw new Error('No submission data found and cannot extract from video URL');
+        }
+      } else {
+        submission = JSON.parse(submissionData);
+      }
+      
+      console.log('Using submission:', submission);
+      console.log('Hitting plan:', hittingPlan);
+      
+      // Generate unique ID for analysis video
+      const analysisId = `analysis-${submission.submissionId}-${Date.now()}`;
+      const fileName = `${analysisId}.webm`;
+      
+      // Step 1: Create FormData for Stream upload
+      setUploadStatus('Preparing video for upload...');
+      const formData = new FormData();
+      formData.append('video', new Blob([segment.blob], { type: 'video/webm' }), fileName);
+      formData.append('submissionId', submission.submissionId);
+      formData.append('athleteName', submission.playerName || 'Unknown Athlete');
+      
+      // Add hitting plan if provided
+      if (hittingPlan) {
+        formData.append('hittingPlan', JSON.stringify(hittingPlan));
+      }
+      
+      // Step 2: Upload to Cloudflare Stream via Worker
+      setUploadStatus('Uploading to Cloudflare Stream for iPhone compatibility...');
+      const uploadResponse = await fetch('https://swing-platform.brianduryea.workers.dev/api/analysis/upload-to-stream', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        console.error('Stream upload failed:', errorText);
+        throw new Error('Failed to upload video to Stream');
+      }
+      
+      const streamResponse = await uploadResponse.json();
+      console.log('Stream upload successful:', streamResponse);
+      const { streamUID, mp4Url, downloadUrl } = streamResponse;
+      
+      // The Worker will handle the Stream API call and return the Stream ID
+      // Stream will convert WebM to MP4 automatically
+      
+      // Step 3: Update submission with analysis
+      setUploadStatus('Updating submission...');
+      const updateResponse = await fetch('https://swing-platform.brianduryea.workers.dev/api/submission/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          submissionId: submission.submissionId,
+          analysisVideoKey: streamUID,  // Using Stream UID as the key
+          analysisDuration: segment.duration,
+          coachNotes: 'Analysis completed via Cloudflare Stream'
+        })
+      });
+      
+      if (!updateResponse.ok) throw new Error('Failed to update submission');
+      
+      setUploadStatus('✅ Analysis uploaded! Converting to MP4 for iPhone...');
+      
+      // Clear session and redirect after success
+      setTimeout(() => {
+        sessionStorage.removeItem('selectedVideo');
+        sessionStorage.removeItem('selectedSubmission');
+        window.location.href = '/';
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Upload failed:', error);
+      setUploadStatus(`❌ Upload failed: ${error.message}`);
+      setIsUploading(false);
+    }
   };
 
   const startRecording = useCallback(async () => {
@@ -192,12 +299,16 @@ const SelectableRecorder: React.FC = () => {
         const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
         const url = URL.createObjectURL(blob);
         
-        setRecordedSegments(prev => [...prev, {
+        // Instead of immediately adding to segments, show review modal
+        const segment = {
           id: Date.now().toString(),
           url,
           blob,
           duration: recordingDuration,
-        }]);
+        };
+        
+        setReviewingSegment(segment);
+        setShowReview(true);
 
         // Cleanup
         stopDrawing();
@@ -224,16 +335,27 @@ const SelectableRecorder: React.FC = () => {
 
       mediaRecorder.start(1000);
       setIsRecording(true);
+      setIsPaused(false);
       
       // Start duration timer
-      const startTime = Date.now();
+      recordingStartTimeRef.current = Date.now();
+      pausedDurationRef.current = 0;
+      
       const timer = setInterval(() => {
-        if (!mediaRecorderRef.current || mediaRecorderRef.current.state !== 'recording') {
+        const recorder = mediaRecorderRef.current;
+        if (!recorder) {
           clearInterval(timer);
           return;
         }
-        setRecordingDuration(Math.floor((Date.now() - startTime) / 1000));
+        
+        // Only update timer if actively recording (not paused)
+        if (recorder.state === 'recording') {
+          const elapsed = Date.now() - recordingStartTimeRef.current - pausedDurationRef.current;
+          setRecordingDuration(Math.floor(elapsed / 1000));
+        }
       }, 1000);
+      
+      recordingTimerRef.current = timer;
 
     } catch (error: any) {
       console.error('Failed to start recording:', error);
@@ -242,10 +364,50 @@ const SelectableRecorder: React.FC = () => {
     }
   }, [selectionBox, recordingDuration, startDrawing, stopDrawing]);
 
+  const pauseRecording = useCallback(() => {
+    const recorder = mediaRecorderRef.current;
+    if (recorder && recorder.state === 'recording') {
+      recorder.pause();
+      setIsPaused(true);
+      
+      // Track when we paused to calculate pause duration
+      pausedDurationRef.current = Date.now() - recordingStartTimeRef.current - (recordingDuration * 1000);
+      
+      // Also pause the drawing to save resources
+      stopDrawing();
+      
+      console.log('Recording paused at', recordingDuration, 'seconds');
+    }
+  }, [recordingDuration, stopDrawing]);
+
+  const resumeRecording = useCallback(() => {
+    const recorder = mediaRecorderRef.current;
+    if (recorder && recorder.state === 'paused') {
+      recorder.resume();
+      setIsPaused(false);
+      
+      // Calculate how long we were paused and add to total pause time
+      const pauseDuration = Date.now() - recordingStartTimeRef.current - (recordingDuration * 1000);
+      pausedDurationRef.current = pauseDuration;
+      
+      // Resume drawing
+      startDrawing();
+      
+      console.log('Recording resumed after pause');
+    }
+  }, [recordingDuration, startDrawing]);
+
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      setIsPaused(false);
+      
+      // Clear timer
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+        recordingTimerRef.current = null;
+      }
     }
   }, []);
 
@@ -264,6 +426,27 @@ const SelectableRecorder: React.FC = () => {
       }
     };
   }, [stopDrawing]);
+
+  // Handle review approval
+  const handleReviewApprove = (segment: any, hittingPlan: any) => {
+    setShowReview(false);
+    setReviewingSegment(null);
+    
+    // Add to recorded segments for now, but we'll upload directly
+    setRecordedSegments(prev => [...prev, segment]);
+    
+    // Upload with hitting plan
+    uploadAnalysis(segment, hittingPlan);
+  };
+
+  // Handle review cancel
+  const handleReviewCancel = () => {
+    if (reviewingSegment) {
+      URL.revokeObjectURL(reviewingSegment.url);
+    }
+    setShowReview(false);
+    setReviewingSegment(null);
+  };
 
   return (
     <>
@@ -470,17 +653,43 @@ const SelectableRecorder: React.FC = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                  <span className="text-sm text-white">Recording: {recordingDuration}s</span>
+                  <div className={`w-2 h-2 ${isPaused ? 'bg-yellow-500' : 'bg-red-500 animate-pulse'} rounded-full`} />
+                  <span className="text-sm text-white">
+                    {isPaused ? 'Paused' : 'Recording'}: {recordingDuration}s
+                  </span>
                 </div>
               </div>
               
-              <button
-                onClick={stopRecording}
-                className="w-full px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors text-sm"
-              >
-                Stop
-              </button>
+              <div className="flex gap-2">
+                {!isPaused ? (
+                  <button
+                    onClick={pauseRecording}
+                    className="flex-1 px-3 py-1 bg-yellow-600 hover:bg-yellow-700 text-white rounded transition-colors text-sm"
+                  >
+                    Pause
+                  </button>
+                ) : (
+                  <button
+                    onClick={resumeRecording}
+                    className="flex-1 px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded transition-colors text-sm"
+                  >
+                    Resume
+                  </button>
+                )}
+                
+                <button
+                  onClick={stopRecording}
+                  className="flex-1 px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded transition-colors text-sm"
+                >
+                  Stop
+                </button>
+              </div>
+              
+              {isPaused && (
+                <div className="text-xs text-yellow-400 text-center">
+                  Recording paused - load videos, make changes, then resume
+                </div>
+              )}
             </div>
           )}
           
@@ -493,32 +702,53 @@ const SelectableRecorder: React.FC = () => {
                   <span className="text-xs text-white block">Recording {index + 1} ({segment.duration}s)</span>
                   <div className="flex gap-1">
                     <button
-                      onClick={() => {
-                        const link = document.createElement('a');
-                        link.href = segment.url;
-                        link.download = `analysis-${segment.id}.webm`;
-                        link.click();
-                      }}
-                      className="text-xs px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors flex-1"
+                      onClick={() => uploadAnalysis(segment)}
+                      disabled={isUploading}
+                      className={`text-xs px-2 py-1 ${
+                        isUploading 
+                          ? 'bg-gray-600 cursor-not-allowed' 
+                          : 'bg-green-600 hover:bg-green-700'
+                      } text-white rounded transition-colors flex-1`}
                     >
-                      Download
+                      {isUploading ? 'Uploading...' : 'Approve & Send to Player'}
                     </button>
                     <button
                       onClick={() => {
                         URL.revokeObjectURL(segment.url);
                         setRecordedSegments(prev => prev.filter(s => s.id !== segment.id));
                       }}
-                      className="text-xs px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded transition-colors flex-1"
+                      disabled={isUploading}
+                      className={`text-xs px-2 py-1 ${
+                        isUploading
+                          ? 'bg-gray-600 cursor-not-allowed'
+                          : 'bg-red-600 hover:bg-red-700'
+                      } text-white rounded transition-colors flex-1`}
                     >
                       Delete
                     </button>
                   </div>
+                  {uploadStatus && (
+                    <div className="text-xs text-center mt-2 text-yellow-400">
+                      {uploadStatus}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           )}
         </div>
       </div>
+
+      {/* Video Review Modal */}
+      {showReview && reviewingSegment && (
+        <VideoReviewWithPlan
+          segment={reviewingSegment}
+          submission={JSON.parse(sessionStorage.getItem('selectedSubmission') || '{}')}
+          onApprove={handleReviewApprove}
+          onCancel={handleReviewCancel}
+          isUploading={isUploading}
+        />
+      )}
     </>
   );
 };

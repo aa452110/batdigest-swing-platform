@@ -8,6 +8,9 @@ export interface Env {
   // Queue binding
   VIDEO_QUEUE: Queue;
   
+  // Service binding for email worker
+  EMAIL_SERVICE: Fetcher;
+  
   // Environment variables
   CORS_ORIGIN: string;
   ENVIRONMENT: string;

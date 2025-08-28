@@ -3,7 +3,7 @@ main = "src/index.ts"
 compatibility_date = "2024-08-20"
 
 # Account ID (get from Cloudflare dashboard)
-account_id = "YOUR_ACCOUNT_ID"
+account_id = "f791be9be6d12e1353b13e587d3eccd9"
 
 # R2 Bindings
 [[r2_buckets]]
@@ -14,7 +14,12 @@ bucket_name = "swing-analysis-videos"
 [[d1_databases]]
 binding = "DB"
 database_name = "swing-analysis"
-database_id = "YOUR_DATABASE_ID"
+database_id = "b612b3da-150f-47dc-9693-d32a3527cd96"
+
+# Service Bindings
+[[services]]
+binding = "EMAIL_SERVICE"
+service = "batdigest-email"
 
 # Queue Bindings
 [[queues.producers]]
@@ -29,7 +34,7 @@ max_batch_timeout = 30
 # Environment Variables
 [vars]
 ENVIRONMENT = "development"
-CORS_ORIGIN = "http://localhost:5001"
+CORS_ORIGIN = "http://localhost:5004"
 
 # Production Environment
 [env.production]

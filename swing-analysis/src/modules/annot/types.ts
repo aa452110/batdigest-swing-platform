@@ -1,4 +1,4 @@
-export type ToolType = 'line' | 'dot' | 'box' | 'select' | 'arrow';
+export type ToolType = 'line' | 'dot' | 'box' | 'select' | 'arrow' | 'pen';
 
 export interface Point {
   x: number;

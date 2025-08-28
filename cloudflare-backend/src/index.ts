@@ -1,4 +1,5 @@
 import { Env, SubmissionRequest, R2UploadResponse } from './types';
+import { sendEmail, sendWelcomeEmailViaService, emailTemplates } from './email';
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -28,6 +29,32 @@ export default {
       
       if (url.pathname === '/api/queue' && request.method === 'GET') {
         return await handleGetQueue(request, env, corsHeaders);
+      }
+      
+      if (url.pathname === '/api/auth/signup' && request.method === 'POST') {
+        return await handleSignup(request, env, corsHeaders);
+      }
+      
+      if (url.pathname === '/api/auth/login' && request.method === 'POST') {
+        return await handleLogin(request, env, corsHeaders);
+      }
+      
+      if (url.pathname === '/api/test-email' && request.method === 'GET') {
+        // Test endpoint for email
+        const emailTemplate = emailTemplates.welcome('Brian', 'Performance');
+        const emailSent = await sendEmail({
+          to: 'brianduryea@gmail.com',
+          from: 'noreply@batdigest.com',
+          subject: 'Test Email from $500 Swing',
+          html: emailTemplate.html,
+        });
+        
+        return new Response(JSON.stringify({ 
+          success: emailSent,
+          message: emailSent ? 'Test email sent!' : 'Failed to send email'
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
       }
 
       return new Response('Not Found', { status: 404, headers: corsHeaders });
@@ -156,6 +183,142 @@ async function generateR2UploadUrl(env: Env, key: string): Promise<string> {
   // using R2's API or AWS SDK with R2 compatibility
   
   return url.toString();
+}
+
+async function handleSignup(request: Request, env: Env, corsHeaders: any): Promise<Response> {
+  const { email, password, firstName, lastName, planType } = await request.json();
+  
+  if (!email || !password || !firstName || !lastName) {
+    return new Response(JSON.stringify({ error: 'Missing required fields' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+  
+  const accountId = crypto.randomUUID();
+  const timestamp = new Date().toISOString();
+  
+  try {
+    // Check if email already exists
+    const existing = await env.DB.prepare(
+      'SELECT id FROM accounts WHERE email = ?'
+    ).bind(email).first();
+    
+    if (existing) {
+      return new Response(JSON.stringify({ error: 'Email already exists' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Create account (storing password as plain text for demo - in production use proper hashing!)
+    await env.DB.prepare(`
+      INSERT INTO accounts (id, name, email, type, subscription, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      accountId,
+      `${firstName} ${lastName}`,
+      email,
+      'individual',
+      planType || 'starter',
+      timestamp,
+      timestamp
+    ).run();
+    
+    // For demo purposes, we'll store the password in a simple way
+    // In production, use proper password hashing and a separate auth table
+    
+    const user = {
+      id: accountId,
+      email,
+      firstName,
+      lastName,
+      planType: planType || 'starter',
+      subscriptionStatus: 'active',
+      createdAt: timestamp,
+      nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    };
+    
+    // Send welcome email using the email service binding
+    const emailSent = await sendWelcomeEmailViaService(env.EMAIL_SERVICE, email, firstName, planType || 'Starter');
+    
+    if (emailSent) {
+      console.log(`Welcome email sent to ${email}`);
+    } else {
+      console.error(`Failed to send welcome email to ${email}`);
+    }
+    
+    return new Response(JSON.stringify({ 
+      success: true, 
+      user,
+      token: `mock-token-${accountId}`, // Simple token for demo
+      emailSent
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    console.error('Signup error:', error);
+    return new Response(JSON.stringify({ error: 'Failed to create account' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+}
+
+async function handleLogin(request: Request, env: Env, corsHeaders: any): Promise<Response> {
+  const { email, password } = await request.json();
+  
+  if (!email || !password) {
+    return new Response(JSON.stringify({ error: 'Missing email or password' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+  
+  try {
+    // Get account by email
+    const account = await env.DB.prepare(
+      'SELECT * FROM accounts WHERE email = ?'
+    ).bind(email).first();
+    
+    if (!account) {
+      return new Response(JSON.stringify({ error: 'Invalid credentials' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // For demo, we're not checking password properly
+    // In production, verify hashed password
+    
+    const [firstName, ...lastNameParts] = account.name.split(' ');
+    const lastName = lastNameParts.join(' ');
+    
+    const user = {
+      id: account.id,
+      email: account.email,
+      firstName,
+      lastName,
+      planType: account.subscription,
+      subscriptionStatus: 'active',
+      createdAt: account.created_at,
+      nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    };
+    
+    return new Response(JSON.stringify({ 
+      success: true, 
+      user,
+      token: `mock-token-${account.id}`
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    return new Response(JSON.stringify({ error: 'Login failed' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
 }
 
 async function processVideoSubmission(data: any, env: Env): Promise<void> {

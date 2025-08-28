@@ -2,7 +2,7 @@
  * Pure annotation engine - no UI dependencies
  */
 
-export type Tool = 'line' | 'arrow' | 'box' | 'select';
+export type Tool = 'line' | 'arrow' | 'box' | 'select' | 'pen' | 'dot';
 
 // Normalized point (0-1 in video space)
 export interface Pt {
@@ -36,6 +36,15 @@ export interface DraftAnnotation {
  * Start a new stroke/annotation
  */
 export function startStroke(tool: Tool, pt: Pt, t: number, style: AnnotationStyle): DraftAnnotation {
+  if (tool === 'pen') {
+    // For pen tool, start with single point
+    return {
+      tool,
+      points: [pt],
+      startTime: t,
+      style,
+    };
+  }
   return {
     tool,
     points: [pt, pt], // Start with two points for line/arrow/box
@@ -48,6 +57,13 @@ export function startStroke(tool: Tool, pt: Pt, t: number, style: AnnotationStyl
  * Update stroke with new point
  */
 export function updateStroke(draft: DraftAnnotation, pt: Pt): DraftAnnotation {
+  if (draft.tool === 'pen') {
+    // For pen tool, add points to create a path
+    return {
+      ...draft,
+      points: [...draft.points, pt],
+    };
+  }
   return {
     ...draft,
     points: [draft.points[0], pt], // Keep start, update end

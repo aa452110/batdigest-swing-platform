@@ -95,6 +95,45 @@ const CanvasOverlay: React.FC<CanvasOverlayProps> = ({
     [width, height]
   );
 
+  const drawPen = useCallback(
+    (ctx: CanvasRenderingContext2D, points: Pt[], style: AnnotationStyle) => {
+      if (points.length < 2) return;
+
+      ctx.strokeStyle = style.color;
+      ctx.lineWidth = style.thickness;
+      ctx.globalAlpha = style.opacity || 1;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      ctx.beginPath();
+      const firstPoint = normToPixel(points[0], width, height);
+      ctx.moveTo(firstPoint.x, firstPoint.y);
+
+      for (let i = 1; i < points.length; i++) {
+        const point = normToPixel(points[i], width, height);
+        ctx.lineTo(point.x, point.y);
+      }
+      ctx.stroke();
+    },
+    [width, height]
+  );
+
+  const drawDot = useCallback(
+    (ctx: CanvasRenderingContext2D, points: Pt[], style: AnnotationStyle) => {
+      if (points.length < 1) return;
+
+      const point = normToPixel(points[0], width, height);
+      
+      ctx.fillStyle = style.color;
+      ctx.globalAlpha = style.opacity || 1;
+
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, style.thickness / 2, 0, 2 * Math.PI);
+      ctx.fill();
+    },
+    [width, height]
+  );
+
   // Main render function
   const render = useCallback(() => {
     const canvas = canvasRef.current;
@@ -127,31 +166,46 @@ const CanvasOverlay: React.FC<CanvasOverlayProps> = ({
         case 'box':
           drawBox(ctx, annotation.points, annotation.style);
           break;
+        case 'pen':
+          drawPen(ctx, annotation.points, annotation.style);
+          break;
+        case 'dot':
+          drawDot(ctx, annotation.points, annotation.style);
+          break;
       }
 
       ctx.restore();
     });
 
     // Draw temp annotation (while drawing)
-    if (tempAnnotation?.points && tempAnnotation.points.length >= 2 && tempAnnotation.style) {
-      ctx.save();
-      ctx.globalAlpha = 0.7; // Slightly transparent while drawing
+    if (tempAnnotation?.points && tempAnnotation.style) {
+      const minPoints = tempAnnotation.tool === 'dot' ? 1 : tempAnnotation.tool === 'pen' ? 1 : 2;
+      if (tempAnnotation.points.length >= minPoints) {
+        ctx.save();
+        ctx.globalAlpha = 0.7; // Slightly transparent while drawing
 
-      switch (tempAnnotation.tool) {
-        case 'line':
-          drawLine(ctx, tempAnnotation.points, tempAnnotation.style);
-          break;
-        case 'arrow':
-          drawArrow(ctx, tempAnnotation.points, tempAnnotation.style);
-          break;
-        case 'box':
-          drawBox(ctx, tempAnnotation.points, tempAnnotation.style);
-          break;
+        switch (tempAnnotation.tool) {
+          case 'line':
+            drawLine(ctx, tempAnnotation.points, tempAnnotation.style);
+            break;
+          case 'arrow':
+            drawArrow(ctx, tempAnnotation.points, tempAnnotation.style);
+            break;
+          case 'box':
+            drawBox(ctx, tempAnnotation.points, tempAnnotation.style);
+            break;
+          case 'pen':
+            drawPen(ctx, tempAnnotation.points, tempAnnotation.style);
+            break;
+          case 'dot':
+            drawDot(ctx, tempAnnotation.points, tempAnnotation.style);
+            break;
+        }
       }
 
       ctx.restore();
     }
-  }, [annotations, tempAnnotation, selectedId, drawLine, drawArrow, drawBox]);
+  }, [annotations, tempAnnotation, selectedId, drawLine, drawArrow, drawBox, drawPen, drawDot]);
 
   // Notify parent when canvas is ready
   useEffect(() => {
