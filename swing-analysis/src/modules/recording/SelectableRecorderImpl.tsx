@@ -3,13 +3,11 @@ import { useMicMonitor } from './recordingHooks/useMicMonitor';
 import { useCropConfig } from './recordingHooks/useCropConfig';
 import { useUpload } from './recordingHooks/useUpload';
 import { useDebugOverlay } from './recordingHooks/useDebugOverlay';
-import { useSelection } from './recordingHooks/useSelection';
 import { useRecordingEngine } from './recordingHooks/useRecordingEngine';
 import AreaPreviewOverlay from './recordingComponents/AreaPreviewOverlay';
 import CropEditorPanel from './recordingComponents/CropEditorPanel';
 import PreRecordActions from './recordingComponents/PreRecordActions';
-import PostSelectionPanel from './recordingComponents/PostSelectionPanel';
-import SelectionOverlay from './recordingComponents/SelectionOverlay';
+// Selection overlay removed in favor of center-crop editor
 import RecordingControls from './recordingComponents/RecordingControls';
 import SegmentsList from './recordingComponents/SegmentsList';
 import UploadOverlay from './recordingComponents/UploadOverlay';
@@ -67,8 +65,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
     lastCaptureDims: lastCaptureDimsRef.current,
   });
   
-  // Selection state via hook
-  const { isSelecting, hasSelected, selectionBox, setSelectionBox, setHasSelected, startSelecting, confirmSelection } = useSelection();
+  // Selection overlay removed; using center-crop controls
 
   // Handle finished recording segments
   const onSegmentReady = useCallback((segment: { id: string; url: string; blob: Blob; duration: number }) => {
@@ -148,10 +145,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
 
   // Review modal handlers removed
 
-  const handleConfirmSelection = React.useCallback(() => {
-    const result = confirmSelection(videoRef);
-    if (debugMode) console.log('Recording area selected (capture px):', result.cropRect);
-  }, [confirmSelection]);
+  // No selection confirmation; center-crop applies via CropEditorPanel
 
   return (
     <>
@@ -164,17 +158,12 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
         offsetY={offsetNorm.y}
       />
 
-      <SelectionOverlay
-        isSelecting={isSelecting}
-        selectionBox={selectionBox}
-        onChange={setSelectionBox}
-        onConfirm={handleConfirmSelection}
-      />
+      {/* Selection overlay removed */}
 
       <div className="bg-gray-800 rounded-lg p-4">
         <h3 className="text-sm font-semibold text-gray-300 mb-3">Selectable Recording</h3>
         
-        {!isSelecting && (
+        {
           <video
             ref={videoRef}
             muted
@@ -184,7 +173,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
               display: 'none',
             }}
           />
-        )}
+        }
         
         <canvas
           ref={canvasRef}
@@ -240,20 +229,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
             />
           )}
           
-          {!isRecording && isSelecting && (
-            <div className="text-sm text-green-400">
-              Drag the green box to position it over the area you want to record
-            </div>
-          )}
-          
-          {!isRecording && hasSelected && (
-            <PostSelectionPanel
-              width={selectionBox.width}
-              height={selectionBox.height}
-              onStart={startRecording}
-              onReselect={() => { setHasSelected(false); startSelecting(displayStreamRef, videoRef); }}
-            />
-          )}
+          {/* SelectionPanel removed */}
           
           {isRecording && (
             <RecordingControls
