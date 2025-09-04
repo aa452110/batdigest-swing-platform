@@ -39,6 +39,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
     hasAppliedCrop,
     isConfigMode, setIsConfigMode,
     showAreaPreview, setShowAreaPreview,
+    anchorTop, setAnchorTop,
     increaseCrop, decreaseCrop,
     applyScreenSize, resetScreenSize,
     lockedRect,
@@ -82,8 +83,9 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
       lockedRect,
       debugMode,
       lastDebugUpdateRef,
+      anchorTop,
     }),
-    [appliedCrop, lockedRect, debugMode]
+    [appliedCrop, lockedRect, debugMode, anchorTop]
   );
 
   // Animation loop (extracted)
@@ -216,6 +218,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
               cropPreset={cropPreset}
               offsetNorm={offsetNorm}
               showAreaPreview={showAreaPreview}
+              anchorTop={anchorTop}
               onIncreaseCrop={increaseCrop}
               onDecreaseCrop={decreaseCrop}
               onOffsetUp={() => setOffsetNorm(v => ({ ...v, y: Math.max(-1, v.y - 0.1) }))}
@@ -224,6 +227,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
               onOffsetRight={() => setOffsetNorm(v => ({ ...v, x: Math.min(1, v.x + 0.1) }))}
               onOffsetReset={() => setOffsetNorm({ x: 0, y: 0 })}
               onTogglePreview={setShowAreaPreview}
+              onToggleAnchorTop={setAnchorTop}
               onApply={applyScreenSizeBound}
               onCancel={() => { setIsConfigMode(false); setShowAreaPreview(false); }}
             />

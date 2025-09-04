@@ -4,6 +4,7 @@ type Props = {
   cropPreset: { w: number; h: number };
   offsetNorm: { x: number; y: number };
   showAreaPreview: boolean;
+  anchorTop: boolean;
   onIncreaseCrop: () => void;
   onDecreaseCrop: () => void;
   onOffsetUp: () => void;
@@ -12,6 +13,7 @@ type Props = {
   onOffsetRight: () => void;
   onOffsetReset: () => void;
   onTogglePreview: (v: boolean) => void;
+  onToggleAnchorTop: (v: boolean) => void;
   onApply: () => void;
   onCancel: () => void;
 };
@@ -20,6 +22,7 @@ const CropEditorPanel: React.FC<Props> = ({
   cropPreset,
   offsetNorm,
   showAreaPreview,
+  anchorTop,
   onIncreaseCrop,
   onDecreaseCrop,
   onOffsetUp,
@@ -28,6 +31,7 @@ const CropEditorPanel: React.FC<Props> = ({
   onOffsetRight,
   onOffsetReset,
   onTogglePreview,
+  onToggleAnchorTop,
   onApply,
   onCancel,
 }) => {
@@ -57,6 +61,10 @@ const CropEditorPanel: React.FC<Props> = ({
       <div className="mt-2 flex items-center gap-2">
         <input id="preview-toggle" type="checkbox" checked={showAreaPreview} onChange={(e) => onTogglePreview(e.target.checked)} />
         <label htmlFor="preview-toggle" className="text-xs text-gray-300">Show Area Preview (center)</label>
+      </div>
+      <div className="mt-2 flex items-center gap-2">
+        <input id="anchor-top-toggle" type="checkbox" checked={anchorTop} onChange={(e) => onToggleAnchorTop(e.target.checked)} />
+        <label htmlFor="anchor-top-toggle" className="text-xs text-gray-300">Anchor to top (Y = 0%)</label>
       </div>
       <div className="mt-3 flex gap-2">
         <button onClick={onApply} className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white text-sm rounded">SET Screen Size</button>

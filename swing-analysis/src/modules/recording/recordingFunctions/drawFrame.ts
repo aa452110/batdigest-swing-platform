@@ -11,10 +11,11 @@ export type DrawFrameDeps = {
   lockedRect: LockedRect;
   debugMode: boolean;
   lastDebugUpdateRef: React.MutableRefObject<number>;
+  anchorTop?: boolean;
 };
 
 export function createDrawFrame(deps: DrawFrameDeps) {
-  const { canvasRef, videoRef, displayStreamRef, appliedCrop, lockedRect, debugMode, lastDebugUpdateRef } = deps;
+  const { canvasRef, videoRef, displayStreamRef, appliedCrop, lockedRect, debugMode, lastDebugUpdateRef, anchorTop } = deps;
 
   return function drawFrame() {
     const canvas = canvasRef.current;
@@ -72,7 +73,9 @@ export function createDrawFrame(deps: DrawFrameDeps) {
       const marginX = Math.max(0, (vw - desiredW) / 2);
       const marginY = Math.max(0, (vh - desiredH) / 2);
       const sx = Math.max(0, Math.min(vw - desiredW, Math.floor(marginX + activeX * marginX)));
-      const sy = Math.max(0, Math.min(vh - desiredH, Math.floor(marginY + activeY * marginY)));
+      const sy = anchorTop
+        ? 0
+        : Math.max(0, Math.min(vh - desiredH, Math.floor(marginY + activeY * marginY)));
       ctx.drawImage(video, sx, sy, desiredW, desiredH, 0, 0, cw, ch);
       if (debugMode) {
         const now = Date.now();
