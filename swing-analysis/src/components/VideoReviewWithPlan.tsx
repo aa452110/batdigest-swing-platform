@@ -65,7 +65,8 @@ export default function VideoReviewWithPlan({
   };
 
   const handleApprove = () => {
-    onApprove(segment, hittingPlan);
+    // Pass null for hitting plan since it's disabled
+    onApprove(segment, null);
   };
 
   return (
@@ -143,8 +144,8 @@ export default function VideoReviewWithPlan({
             </div>
           </div>
 
-          {/* Hitting Plan Section */}
-          <div className="mb-6">
+          {/* Hitting Plan Section - DISABLED FOR NOW */}
+          {/* <div className="mb-6">
             {!showPlanBuilder && !hittingPlan ? (
               <div className="bg-gray-800 rounded-lg p-6 text-center">
                 <h3 className="text-lg font-semibold text-white mb-2">7-Day Hitting Plan</h3>
@@ -193,7 +194,7 @@ export default function VideoReviewWithPlan({
                 </div>
               </div>
             ) : null}
-          </div>
+          </div> */}
 
           {/* Action Buttons */}
           <div className="flex justify-between items-center bg-gray-800 p-4 rounded-lg">

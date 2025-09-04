@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { SwingShopHeader } from '../components/SwingShopHeader';
 
 interface User {
   id: number;
@@ -148,16 +149,33 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-500 to-indigo-600">
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="bg-white rounded-xl shadow-xl overflow-hidden">
-          {/* Header */}
-          <div className="bg-gray-900 text-white p-6">
-            <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-bold">$500 Swing Admin Dashboard</h1>
-              <div className="text-sm">{new Date().toLocaleString()}</div>
+    <div className="min-h-screen bg-gray-50">
+      <SwingShopHeader />
+      
+      {/* Admin Navigation Bar */}
+      <nav className="bg-teal-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center space-x-6">
+              <button
+                onClick={() => navigate('/admin')}
+                className="text-cyan-300 font-semibold"
+              >
+                Admin Dashboard
+              </button>
+              <button
+                onClick={() => navigate('/admin/queue')}
+                className="hover:text-cyan-300"
+              >
+                Video Queue
+              </button>
             </div>
           </div>
+        </div>
+      </nav>
+      
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
 
           {/* Stats */}
           <div className="p-6 bg-gray-50 border-b">
@@ -180,8 +198,8 @@ export default function AdminDashboard() {
               </div>
             </div>
             
-            {/* Queue Buttons */}
-            <div className="flex gap-4 justify-center flex-wrap">
+            {/* Single Queue Button */}
+            <div className="flex justify-center">
               <button
                 onClick={() => navigate('/admin/queue')}
                 className="px-6 py-3 bg-cyan-600 text-white font-semibold rounded-lg hover:bg-cyan-700 transition-colors flex items-center gap-2"
@@ -190,25 +208,6 @@ export default function AdminDashboard() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                 </svg>
                 View Submission Queue
-              </button>
-              <button
-                onClick={() => navigate('/admin/analyzer')}
-                className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-                Go to Analyzer
-              </button>
-              <button
-                onClick={() => navigate('/admin/resource-videos')}
-                className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h18M3 12h18M3 16h18" />
-                </svg>
-                Manage Resource Videos
               </button>
             </div>
           </div>

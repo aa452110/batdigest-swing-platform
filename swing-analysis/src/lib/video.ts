@@ -87,3 +87,57 @@ export function formatFileSize(bytes: number): string {
 
   return `${size.toFixed(2)} ${units[unitIndex]}`;
 }
+
+// Shared: Resolve analyzed video download URL from various sources
+export interface AnalyzedVideoSource {
+  downloadUrl?: string | null;
+  analysisResult?: string | null; // JSON string possibly containing fields
+  hlsUrl?: string | null;
+  videoKey?: string | null;
+}
+
+function hlsToMp4Download(hlsUrl: string): string | null {
+  if (!hlsUrl) return null;
+  // Typical CF Stream HLS path ends with /manifest/video.m3u8
+  if (hlsUrl.includes('/manifest/video.m3u8')) {
+    return hlsUrl.replace('/manifest/video.m3u8', '/downloads/default.mp4');
+  }
+  // Fallback: if URL already looks like a downloads URL, return as-is
+  if (hlsUrl.includes('/downloads/')) return hlsUrl;
+  return null;
+}
+
+export function resolveAnalyzedDownloadUrl(source: AnalyzedVideoSource): string | null {
+  try {
+    // 1) Prefer explicit field
+    if (source.downloadUrl) return source.downloadUrl;
+
+    // 2) Parse analysisResult if present
+    if (source.analysisResult) {
+      const data = JSON.parse(source.analysisResult);
+      if (data?.downloadUrl) return data.downloadUrl as string;
+      if (data?.mp4Url) return data.mp4Url as string;
+      if (data?.analysisUrl) return data.analysisUrl as string;
+      if (data?.hlsUrl) {
+        const maybe = hlsToMp4Download(data.hlsUrl as string);
+        if (maybe) return maybe;
+      }
+      if (data?.videoKey) {
+        return `https://customer-yq8x3fnnfhzi0vpw.cloudflarestream.com/${data.videoKey}/downloads/default.mp4`;
+      }
+    }
+
+    // 3) Direct hlsUrl/videoKey on the object
+    if (source.hlsUrl) {
+      const maybe = hlsToMp4Download(source.hlsUrl);
+      if (maybe) return maybe;
+    }
+    if (source.videoKey) {
+      return `https://customer-yq8x3fnnfhzi0vpw.cloudflarestream.com/${source.videoKey}/downloads/default.mp4`;
+    }
+  } catch (e) {
+    // Swallow parse errors and fall through
+    console.warn('Failed to resolve analyzed download URL:', e);
+  }
+  return null;
+}

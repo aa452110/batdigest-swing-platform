@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 
 const PLAN_DETAILS: Record<string, { name: string; price: number; period: string }> = {
-  starter: { name: 'Starter', price: 20, period: '/month' },
+  starter: { name: 'Starter', price: 25, period: '/month' },
   performance: { name: 'Performance', price: 40, period: '/month' },
   sixmonth: { name: '6-Month Performance', price: 200, period: '/6 months' },
 };

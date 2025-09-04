@@ -1,14 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const PLANS = [
   {
     id: 'starter',
     name: 'Starter',
-    price: '$20',
+    price: '$25',
     period: '/month',
     features: [
-      '1 analysis/month',
+      '2 analyses/month',
       'Pro coach feedback',
       'Frame-by-frame analysis',
       'Progress tracking',
@@ -25,8 +25,7 @@ const PLANS = [
       'Pro coach feedback',
       'Frame-by-frame analysis',
       'Progress tracking',
-      'iOS app access',
-      'Priority support'
+      'iOS app access'
     ],
     popular: true
   },
@@ -42,32 +41,120 @@ const PLANS = [
       'Frame-by-frame analysis',
       'Progress tracking',
       'iOS app access',
-      'Priority support',
       'Save $40 vs monthly'
     ]
   }
 ];
 
 export function LandingPage() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
       <nav className="absolute top-0 left-0 right-0 z-50 bg-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <span className="text-2xl font-bold text-white">Swing Shop</span>
+            <div className="flex items-center gap-3">
+              <img 
+                src="/swing-shop-icon.png" 
+                alt="Swing Shop" 
+                className="w-8 h-8 md:w-10 md:h-10 object-contain"
+              />
+              <span className="text-xl md:text-2xl font-bold text-white">Swing Shop</span>
             </div>
-            <div className="flex items-center space-x-6">
-              <Link to="/login" className="text-white hover:text-gray-200">
-                Login
+            
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-4 md:space-x-6">
+              <a href="https://batdigest.com" className="text-white hover:text-cyan-300 text-sm md:text-base">
+                BatDigest
+              </a>
+              <Link to="/login" className="text-white hover:text-cyan-300 text-sm md:text-base">
+                Player Login
               </Link>
-              <a href="#pricing" className="bg-cyan-500 text-white px-4 py-2 rounded-lg hover:bg-cyan-600">
-                Get Started
+              <Link to="/coach/login" className="text-white hover:text-cyan-300 text-sm md:text-base">
+                Coach Login
+              </Link>
+              <div className="flex gap-2">
+                <a href="#pricing" className="bg-cyan-500 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-cyan-600 text-sm md:text-base">
+                  Sign Up
+                </a>
+              </div>
+            </div>
+
+            {/* Mobile Hamburger Button */}
+            <button
+              className="md:hidden text-white p-2"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {isMobileMenuOpen ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu Slide-out */}
+        <div className={`fixed top-0 right-0 h-full w-64 bg-slate-900 transform transition-transform duration-300 ease-in-out z-50 ${
+          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        } md:hidden`}>
+          <div className="p-6">
+            <button
+              className="absolute top-6 right-6 text-white"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            <div className="mt-16 flex flex-col space-y-6">
+              <a 
+                href="https://batdigest.com" 
+                className="text-white text-lg hover:text-cyan-300 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                BatDigest
+              </a>
+              <Link 
+                to="/login" 
+                className="text-white text-lg hover:text-cyan-300 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Player Login
+              </Link>
+              <Link 
+                to="/coach/login" 
+                className="text-white text-lg hover:text-cyan-300 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Coach Login
+              </Link>
+              <a 
+                href="#pricing" 
+                className="bg-cyan-500 text-white px-6 py-3 rounded-lg hover:bg-cyan-600 text-center font-semibold"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Sign Up
               </a>
             </div>
           </div>
         </div>
+
+        {/* Overlay */}
+        {isMobileMenuOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
       </nav>
 
       {/* Hero Section */}
@@ -81,26 +168,33 @@ export function LandingPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h1 className="text-5xl font-black mb-6 leading-tight">
-                Turn Your <s className="opacity-50">$500</s> $150 Bat Into a $500 Swing
+              <h1 className="text-5xl font-black mb-4 leading-tight">
+                The Mechanic, Not the Metal
               </h1>
-              <p className="text-xl mb-8 text-gray-100">
-                The industry doesn't care how well you swing—just that you think the next bat is better. 
-                We tell you the truth: it's the mechanic, not the metal.
+              <p className="text-2xl mb-8 text-gray-100">
+                Turn Your <s className="opacity-50">$500</s> $150 Bat Into a $500 Swing
+              </p>
+              <p className="text-lg mb-8 text-gray-200">
+                Connect with real coaches who fix swings, not sell equipment. 
+                Whether it's your current coach or one of our verified pros, 
+                get feedback directly in your app that actually improves your game.
               </p>
               <div className="flex flex-wrap gap-4 mb-8">
                 <a href="#pricing" className="bg-cyan-500 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-cyan-600 transform hover:-translate-y-1 transition-all">
-                  Get Started
+                  Start as Player
                 </a>
+                <Link to="/coach/signup" className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-white hover:text-teal-800 transform hover:-translate-y-1 transition-all">
+                  Join as Coach
+                </Link>
               </div>
               <div className="flex flex-wrap gap-6 text-sm">
                 <div className="flex items-center gap-2">
                   <span className="text-cyan-400">✓</span>
-                  <span>Used by Travel Players</span>
+                  <span>Work with YOUR coach remotely</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-cyan-400">✓</span>
-                  <span>Used by College Players</span>
+                  <span>Get matched with verified coaches and D1 level players</span>
                 </div>
               </div>
             </div>
@@ -165,7 +259,7 @@ export function LandingPage() {
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
                   <span className="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></span>
-                  <span className="text-gray-700">Real college players analyze your swing mechanics</span>
+                  <span className="text-gray-700">College Players and Legit Coaches analyze your Swing Mechanics</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></span>
@@ -189,37 +283,114 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* Logo Divider */}
+      <div className="py-8 bg-white flex justify-center">
+        <img 
+          src="/swing-shop-icon.png" 
+          alt="Swing Shop" 
+          className="w-16 h-16 md:w-20 md:h-20 opacity-20"
+        />
+      </div>
+
+      {/* Coach Value Prop Section */}
+      <section className="py-20 bg-teal-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Coaches: Turn Your Expertise Into Income</h2>
+            <p className="text-xl text-teal-200">Earn 90% of subscription fees*. We handle the tech, you do what you love.</p>
+            <p className="text-sm text-teal-300 mt-2">*After payment processing fees, when all player videos are analyzed during subscription period</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
+            <div className="bg-teal-800 p-6 rounded-xl">
+              <h3 className="text-xl font-bold mb-3 text-cyan-300">Expand Your Reach</h3>
+              <p>Help players anywhere, not just in your local area. Build a nationwide client base.</p>
+            </div>
+            <div className="bg-teal-800 p-6 rounded-xl">
+              <h3 className="text-xl font-bold mb-3 text-cyan-300">Year-Round Revenue</h3>
+              <p>Keep earning during off-season. Your players stay subscribed, you keep coaching.</p>
+            </div>
+            <div className="bg-teal-800 p-6 rounded-xl">
+              <h3 className="text-xl font-bold mb-3 text-cyan-300">Zero Overhead</h3>
+              <p>No facility fees, no scheduling hassles. Just login to the coach dashboard and start coaching.</p>
+            </div>
+          </div>
+          
+          <div className="text-center">
+            <Link to="/coach/signup" className="bg-cyan-500 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-cyan-600 inline-block">
+              Join as a Coach →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Logo Divider */}
+      <div className="py-6 bg-gray-50 flex justify-center">
+        <img 
+          src="/swing-shop-icon.png" 
+          alt="" 
+          className="w-12 h-12 md:w-16 md:h-16 opacity-10"
+        />
+      </div>
+
       {/* Features Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-center mb-16 text-gray-900">
-            How It Works
+          <h2 className="text-4xl font-bold text-center mb-6 text-gray-900">
+            Getting Better Has Never Been Easier
           </h2>
+          <p className="text-xl text-center mb-4 text-gray-700 font-semibold">
+            Just upload a video of your hitter and get pro feedback in 72 hours
+          </p>
+          <p className="text-lg text-center mb-16 text-gray-600">
+            Use an existing video from your phone or record a new one. Film from chest-high during a live at-bat. It's that simple.
+          </p>
           
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-4 gap-6 mb-12">
             <div className="text-center">
-              <div className="w-20 h-20 bg-cyan-500 rounded-full flex items-center justify-center text-white text-3xl font-bold mx-auto mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
                 1
               </div>
-              <h3 className="text-xl font-bold mb-3">Upload Your Swing</h3>
-              <p className="text-gray-600">Record from any angle with your phone or camera. Our app makes it simple.</p>
+              <h3 className="text-lg font-bold mb-2">Sign Up</h3>
+              <p className="text-sm text-gray-600">Choose the plan that fits your needs and budget</p>
             </div>
             
             <div className="text-center">
-              <div className="w-20 h-20 bg-cyan-500 rounded-full flex items-center justify-center text-white text-3xl font-bold mx-auto mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
                 2
               </div>
-              <h3 className="text-xl font-bold mb-3">Get Pro Analysis</h3>
-              <p className="text-gray-600">Real D1 and JUCO players break down your mechanics frame by frame.</p>
+              <h3 className="text-lg font-bold mb-2">Download the App</h3>
+              <p className="text-sm text-gray-600">Get our iOS app from the Apple App Store</p>
             </div>
             
             <div className="text-center">
-              <div className="w-20 h-20 bg-cyan-500 rounded-full flex items-center justify-center text-white text-3xl font-bold mx-auto mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
                 3
               </div>
-              <h3 className="text-xl font-bold mb-3">Improve & Track</h3>
-              <p className="text-gray-600">Follow personalized feedback, track your progress over time, and watch your performance improve.</p>
+              <h3 className="text-lg font-bold mb-2">Upload Video</h3>
+              <p className="text-sm text-gray-600">Submit an existing video or record a new one</p>
             </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
+                4
+              </div>
+              <h3 className="text-lg font-bold mb-2">Get Results</h3>
+              <p className="text-sm text-gray-600">Receive detailed analysis within 72 hours</p>
+            </div>
+          </div>
+          
+          {/* iPhone availability notice */}
+          <div className="bg-gray-50 rounded-xl p-6 max-w-3xl mx-auto">
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <svg className="w-8 h-8 text-gray-700" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+              </svg>
+              <span className="text-lg font-semibold text-gray-700">Currently Available for iPhone</span>
+            </div>
+            <p className="text-center text-gray-600">
+              Our iOS app makes submitting videos incredibly easy. Android version coming soon!
+            </p>
           </div>
         </div>
       </section>
@@ -256,10 +427,13 @@ export function LandingPage() {
       <section className="py-20 bg-gray-100" id="pricing">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-center mb-4 text-gray-900">
-            Choose Your Plan
+            Start Improving Today
           </h2>
-          <p className="text-center text-gray-600 mb-12">
-            Recurring charges. Cancel anytime.
+          <p className="text-center text-gray-600 mb-3">
+            Join with your coach's code or get matched with our pros
+          </p>
+          <p className="text-center text-gray-500 text-sm mb-12">
+            Monthly subscriptions. Cancel anytime.
           </p>
           
           <div className="grid md:grid-cols-3 gap-8">
@@ -303,19 +477,28 @@ export function LandingPage() {
       <section className="py-20 bg-gradient-to-br from-slate-900 via-teal-800 to-teal-600 text-white">
         <div className="max-w-4xl mx-auto text-center px-4">
           <h2 className="text-4xl font-bold mb-6">
-            Stop Buying Equipment. Start Building Skills.
+            The Mechanic, Not the Metal
           </h2>
           <p className="text-xl mb-8">
-            Join hundreds of players improving their swing at the Swing Shop
+            Whether you're a player looking to improve or a coach looking to get your guys the best feedback possible, 
+            Swing Shop is where development begins.
           </p>
-          <a 
-            href="#pricing" 
-            className="inline-block bg-cyan-500 text-white px-10 py-5 rounded-lg font-bold text-xl hover:bg-cyan-600 transform hover:-translate-y-1 transition-all"
-          >
-            Get Started Today
-          </a>
+          <div className="flex gap-4 justify-center flex-wrap">
+            <a 
+              href="#pricing" 
+              className="inline-block bg-cyan-500 text-white px-10 py-5 rounded-lg font-bold text-xl hover:bg-cyan-600 transform hover:-translate-y-1 transition-all"
+            >
+              Sign Up as Player
+            </a>
+            <Link 
+              to="/coach/signup" 
+              className="inline-block bg-white text-teal-800 px-10 py-5 rounded-lg font-bold text-xl hover:bg-gray-100 transform hover:-translate-y-1 transition-all"
+            >
+              Join as Coach
+            </Link>
+          </div>
           <p className="mt-8 text-cyan-200">
-            🔥 Join the hundreds of other players improving their swing
+            Turn your <s className="opacity-50">$500</s> $150 bat into a $500 swing
           </p>
         </div>
       </section>
@@ -323,14 +506,25 @@ export function LandingPage() {
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-gray-400">© 2024 Swing Shop. All rights reserved.</p>
-              <p className="text-gray-400 text-sm mt-2">A BatDigest.com Initiative</p>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              <img 
+                src="/swing-shop-icon.png" 
+                alt="Swing Shop" 
+                className="w-12 h-12 opacity-50"
+              />
+              <div className="text-center md:text-left">
+                <p className="text-gray-400">© 2024 Swing Shop. All rights reserved.</p>
+                <p className="text-gray-400 text-sm mt-2">The Mechanic, Not the Metal.</p>
+                <p className="text-gray-400 text-sm mt-1">A BatDigest.com Initiative</p>
+              </div>
             </div>
-            <div className="flex gap-6">
-              <Link to="/login" className="text-gray-400 hover:text-white">Login</Link>
-              <Link to="/account" className="text-gray-400 hover:text-white">Account</Link>
+            <div className="flex gap-6 flex-wrap">
+              <a href="https://batdigest.com" className="text-gray-400 hover:text-white">BatDigest.com</a>
+              <Link to="/login" className="text-gray-400 hover:text-white">Player Login</Link>
+              <Link to="/coach/login" className="text-gray-400 hover:text-white">Coach Login</Link>
+              <Link to="/account" className="text-gray-400 hover:text-white">My Account</Link>
+              <Link to="/privacy" className="text-gray-400 hover:text-white">Privacy Policy</Link>
               <a href="mailto:support@batdigest.com" className="text-gray-400 hover:text-white">Support</a>
             </div>
           </div>

@@ -5,6 +5,7 @@ import SelectableRecorder from '../modules/recording/SelectableRecorder';
 import ReferenceVideos from '../modules/video/ReferenceVideos';
 import DrillVideos from '../modules/video/DrillVideos';
 import VideoControlsSidebar from '../modules/video/VideoControlsSidebar';
+import VideoControlsBottom from '../modules/video/VideoControlsBottom';
 import AnnotationToolbar from '../modules/annot/AnnotationToolbar';
 
 const LoadVideoPage: React.FC = () => {
@@ -15,6 +16,40 @@ const LoadVideoPage: React.FC = () => {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [loadingVideo, setLoadingVideo] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [submissionInfo, setSubmissionInfo] = useState<any>(null);
+  const [analysisSaved, setAnalysisSaved] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState<number>(window.innerWidth);
+
+  useEffect(() => {
+    const onResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  // Multi-breakpoint scaling for better responsive design
+  const centerScale = viewportWidth < 1350 ? 0.6 : 
+                      viewportWidth < 1500 ? 0.7 : 
+                      viewportWidth < 1800 ? 0.8 : 1;
+  
+  // Responsive vertical positioning
+  const topPosition = viewportWidth < 1350 ? '55%' :
+                      viewportWidth < 1500 ? '50%' :
+                      viewportWidth < 1800 ? '45%' : '40%';
+  
+  // Add warning for page refresh
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Only show warning if we have videos loaded AND analysis hasn't been saved
+      if (videoState && (videoState.video1File || videoState.video2File) && !analysisSaved) {
+        e.preventDefault();
+        e.returnValue = 'You will lose all your progress. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [videoState, analysisSaved]);
   
   // Memoize callbacks to prevent infinite loops
   const handleVideo1Change = useCallback((fn: (file: File) => void) => {
@@ -38,6 +73,17 @@ const LoadVideoPage: React.FC = () => {
     const selectedVideo = sessionStorage.getItem('selectedVideo');
     const selectedSubmission = sessionStorage.getItem('selectedSubmission');
     
+    // Parse submission info
+    if (selectedSubmission && !submissionInfo) {
+      try {
+        const parsed = JSON.parse(selectedSubmission);
+        setSubmissionInfo(parsed);
+        console.log('Parsed submission info:', parsed);
+      } catch (e) {
+        console.error('Failed to parse submission info:', e);
+      }
+    }
+    
     console.log('Queue video check:', {
       selectedVideo,
       selectedSubmission,
@@ -48,7 +94,9 @@ const LoadVideoPage: React.FC = () => {
     console.log('All sessionStorage keys:', Object.keys(sessionStorage));
     for (let i = 0; i < sessionStorage.length; i++) {
       const key = sessionStorage.key(i);
-      console.log(`sessionStorage['${key}']:`, sessionStorage.getItem(key));
+      if (key) {
+        console.log(`sessionStorage['${key}']:`, sessionStorage.getItem(key));
+      }
     }
     
     if (selectedVideo && setVideo1) {
@@ -112,67 +160,20 @@ const LoadVideoPage: React.FC = () => {
       alignItems: 'center',
       justifyContent: 'center'
     }}>
-      {/* Logo Header */}
-      <div style={{
-        position: 'fixed',
-        top: '10px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        zIndex: 100,
-        backgroundColor: 'rgba(31, 41, 55, 0.9)',
-        padding: '8px 16px',
-        borderRadius: '8px',
-        border: '1px solid #374151'
-      }}>
-        <button
-          onClick={() => navigate('/')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            padding: '4px 8px',
-            backgroundColor: '#374151',
-            color: '#9ca3af',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '14px'
-          }}
-        >
-          ← Queue
-        </button>
-        <img 
-          src="/500-swing-icon.png" 
-          alt="$500 Swing" 
-          style={{ 
-            width: '32px', 
-            height: '32px',
-            objectFit: 'contain'
-          }} 
-        />
-        <span style={{ 
-          color: '#10b981', 
-          fontWeight: 'bold',
-          fontSize: '18px'
-        }}>
-          $500 Swing Analysis
-        </span>
-      </div>
-      {/* Video player - DEAD CENTER */}
+      {/* Video player - responsive positioning */}
       <div style={{
         position: 'absolute',
         left: '50%',
-        top: '50%',
-        transform: 'translate(-50%, -50%)'
+        top: topPosition,
+        transform: 'translate(-50%, -50%)',
       }}>
-        <ComparisonVideoPlayer 
-          onVideo1Change={handleVideo1Change}
-          onVideo2Change={handleVideo2Change}
-          onStateChange={handleStateChange}
-        />
+        <div style={{ transform: `scale(${centerScale})`, transformOrigin: 'top center' }}>
+          <ComparisonVideoPlayer 
+            onVideo1Change={handleVideo1Change}
+            onVideo2Change={handleVideo2Change}
+            onStateChange={handleStateChange}
+          />
+        </div>
         
         {/* Loading Overlay */}
         {loadingVideo && (
@@ -274,22 +275,44 @@ const LoadVideoPage: React.FC = () => {
         overflowY: 'auto',
         padding: '10px'
       }}>
+        {/* Logo at top of left sidebar */}
+        <div style={{
+          marginBottom: '16px',
+          paddingBottom: '12px',
+          borderBottom: '1px solid #374151'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img 
+              src="/swing-shop-icon.png" 
+              alt="Swing Shop" 
+              style={{ width: '32px', height: '32px' }}
+            />
+            <div>
+              <div style={{ color: '#10b981', fontWeight: 'bold', fontSize: '16px' }}>
+                Swing Shop
+              </div>
+              <div style={{ color: '#6b7280', fontSize: '10px' }}>
+                A BatDigest.com Initiative
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <div className="space-y-4">
-          <SelectableRecorder />
+          <SelectableRecorder onAnalysisSaved={() => setAnalysisSaved(true)} />
+          
+          {/* VIDEO 2 Header */}
+          <div className="px-4">
+            <h2 className="text-lg font-bold text-cyan-400 mb-2">ADD VIDEO 2</h2>
+            <p className="text-xs text-gray-400 mb-3">Load a reference or drill video for comparison</p>
+          </div>
+          
           <ReferenceVideos 
             onSelectVideo={(file) => {
               console.log('ReferenceVideos onSelectVideo called, setVideo2:', !!setVideo2);
               if (setVideo2) {
                 console.log('Setting video2 with file:', file.name);
                 setVideo2(file);
-                // Show helpful message about viewing the reference video
-                setTimeout(() => {
-                  if (videoState && videoState.video1File) {
-                    alert('Reference video loaded! Click "Split View" or "Video 2" button above the video to see it.');
-                  } else {
-                    alert('Reference video loaded! Click "Video 2" button above the video to see it.');
-                  }
-                }, 500);
               } else {
                 console.warn('setVideo2 is null - video comparison not ready yet');
                 alert('Please wait for the video player to initialize before loading reference videos.');
@@ -303,6 +326,14 @@ const LoadVideoPage: React.FC = () => {
               }
             }}
           />
+          
+          {/* Persistence Note */}
+          <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-lg p-3 mt-4 mx-4">
+            <p className="text-xs text-yellow-600">
+              <strong>Note:</strong> Reference and drill videos do not persist between browser sessions. 
+              This feature is coming soon. For now, you'll need to add your local videos each time you use the analyzer.
+            </p>
+          </div>
         </div>
       </div>
       
@@ -317,6 +348,60 @@ const LoadVideoPage: React.FC = () => {
         overflowY: 'auto',
         borderLeft: '1px solid #374151'
       }}>
+        {/* Back to Queue button at top of right sidebar */}
+        <div style={{
+          padding: '10px',
+          borderBottom: '1px solid #374151'
+        }}>
+          <button
+            onClick={() => {
+              // Only show warning if analysis hasn't been saved
+              if (!analysisSaved && videoState && (videoState.video1File || videoState.video2File)) {
+                const confirmLeave = window.confirm('You will lose all your progress. Are you sure you want to go back to the queue?');
+                if (!confirmLeave) {
+                  return;
+                }
+              }
+              
+              // Route back based on current path
+              const currentPath = window.location.pathname;
+              if (currentPath.includes('/coach/')) {
+                navigate('/coach/queue');
+              } else if (currentPath.includes('/admin/')) {
+                navigate('/admin/queue');
+              } else {
+                // Fallback - check for coach token
+                const coachToken = localStorage.getItem('coachToken');
+                navigate(coachToken ? '/coach/queue' : '/admin/queue');
+              }
+            }}
+            style={{
+              width: '100%',
+              padding: '8px 16px',
+              backgroundColor: '#374151',
+              color: '#9ca3af',
+              border: '1px solid #4b5563',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '4px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#4b5563';
+              e.currentTarget.style.color = '#d1d5db';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#374151';
+              e.currentTarget.style.color = '#9ca3af';
+            }}
+          >
+            ← Back to Queue
+          </button>
+        </div>
+        
         {videoState && (
           <VideoControlsSidebar 
             video1File={videoState.video1File}
@@ -332,6 +417,7 @@ const LoadVideoPage: React.FC = () => {
             viewMode={videoState.viewMode}
             video1Controls={videoState.video1Controls}
             video2Controls={videoState.video2Controls}
+            submissionInfo={submissionInfo}
           />
         )}
       </div>
@@ -344,10 +430,18 @@ const LoadVideoPage: React.FC = () => {
           left: '225px',
           right: '225px',
           backgroundColor: '#1f2937',
-          padding: '10px',
           borderTop: '1px solid #374151'
         }}>
-          <AnnotationToolbar />
+          <VideoControlsBottom
+            video1File={videoState.video1File}
+            video2File={videoState.video2File}
+            video1Controls={videoState.video1Controls}
+            video2Controls={videoState.video2Controls}
+            viewMode={videoState.viewMode}
+          />
+          <div style={{ padding: '10px' }}>
+            <AnnotationToolbar />
+          </div>
         </div>
       )}
     </div>

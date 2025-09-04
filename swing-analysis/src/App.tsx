@@ -8,6 +8,16 @@ import { CheckoutPage } from './app/CheckoutPage';
 import { SuccessPage } from './app/SuccessPage';
 import { ForgotPasswordPage } from './app/ForgotPasswordPage';
 import { ResetPasswordPage } from './app/ResetPasswordPage';
+import { PrivacyPage } from './app/PrivacyPage';
+
+// Coach pages
+import { CoachSignupPage } from './app/CoachSignupPage';
+import { CoachSignupSuccess } from './app/CoachSignupSuccess';
+import { CoachLoginPage } from './app/CoachLoginPage';
+import { CoachQueuePage } from './app/CoachQueuePage';
+import { CoachProfilePage } from './app/CoachProfilePage';
+import { CoachGetStartedPage } from './app/CoachGetStartedPage';
+import { CoachHowItWorksPage } from './app/CoachHowItWorksPage';
 
 // Protected pages
 import { AccountPage } from './app/AccountPage';
@@ -16,7 +26,6 @@ import { AccountPage } from './app/AccountPage';
 import NeedAnalysisPage from './app/NeedAnalysisPage';
 import LoadVideoPage from './app/LoadVideoPage';
 import AdminDashboard from './app/AdminDashboard';
-import ResourceVideosManager from './app/ResourceVideosManager';
 
 // Auth components
 import { AdminAuth } from './components/AdminAuth';
@@ -32,6 +41,7 @@ function App() {
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
         
         {/* Protected Routes (require login) */}
         <Route path="/account" element={<AccountPage />} />
@@ -52,11 +62,17 @@ function App() {
             <LoadVideoPage />
           </AdminAuth>
         } />
-        <Route path="/admin/resource-videos" element={
-          <AdminAuth>
-            <ResourceVideosManager />
-          </AdminAuth>
-        } />
+        
+        {/* Coach Routes */}
+        <Route path="/coach" element={<CoachLoginPage />} />
+        <Route path="/coach/signup" element={<CoachSignupPage />} />
+        <Route path="/coach/signup-success" element={<CoachSignupSuccess />} />
+        <Route path="/coach/login" element={<CoachLoginPage />} />
+        <Route path="/coach/queue" element={<CoachQueuePage />} />
+        <Route path="/coach/profile" element={<CoachProfilePage />} />
+        <Route path="/coach/get-started" element={<CoachGetStartedPage />} />
+        <Route path="/coach/how-it-works" element={<CoachHowItWorksPage />} />
+        <Route path="/coach/analyzer" element={<LoadVideoPage />} />
       </Routes>
     </Router>
   );

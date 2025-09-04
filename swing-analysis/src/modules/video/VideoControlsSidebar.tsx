@@ -15,6 +15,7 @@ interface VideoControlsSidebarProps {
   viewMode?: string;
   video1Controls?: any;
   video2Controls?: any;
+  submissionInfo?: any;
 }
 
 const VideoControlsSidebar: React.FC<VideoControlsSidebarProps> = ({
@@ -30,7 +31,8 @@ const VideoControlsSidebar: React.FC<VideoControlsSidebarProps> = ({
   onPlaybackRateChange,
   viewMode,
   video1Controls,
-  video2Controls
+  video2Controls,
+  submissionInfo
 }) => {
   const { viewMode: storeViewMode, setViewMode } = useComparisonStore();
   const currentViewMode = viewMode || storeViewMode;
@@ -48,201 +50,131 @@ const VideoControlsSidebar: React.FC<VideoControlsSidebarProps> = ({
 
   return (
     <div className="h-full flex flex-col gap-3 p-3 overflow-y-auto">
-      {/* View Mode Selection */}
-      <div className="bg-gray-800 rounded-lg p-3">
-        <h3 className="text-sm font-semibold text-gray-300 mb-2">View Mode</h3>
-        <div className="flex flex-col gap-1">
-          {video1File && (
-            <button
-              onClick={() => setViewMode('video1')}
-              className={`px-2 py-1 rounded text-xs transition-colors ${
-                currentViewMode === 'video1' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              }`}
-            >
-              Video 1 Only
-            </button>
-          )}
-          {video2File && (
-            <button
-              onClick={() => setViewMode('video2')}
-              className={`px-2 py-1 rounded text-xs transition-colors ${
-                currentViewMode === 'video2' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              }`}
-            >
-              Video 2 Only
-            </button>
-          )}
-          {video1File && video2File && (
-            <button
-              onClick={() => setViewMode('split')}
-              className={`px-2 py-1 rounded text-xs transition-colors ${
-                currentViewMode === 'split' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              }`}
-            >
-              Split View
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Video 1 Playback Controls */}
-      {video1File && (currentViewMode === 'video1' || currentViewMode === 'split') && video1Controls && (
+      {/* Submission Info */}
+      {submissionInfo && (
         <div className="bg-gray-800 rounded-lg p-3">
-          <h3 className="text-sm font-semibold text-gray-300 mb-2">Video 1 Controls</h3>
+          <h3 className="text-sm font-semibold text-gray-300 mb-3">Submission Details</h3>
           
-          <div className="flex gap-1 mb-2">
-            <button
-              onClick={video1Controls.onPlayPause}
-              className="flex-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs"
-            >
-              {video1Controls.state?.isPlaying ? '⏸' : '▶'}
-            </button>
-          </div>
+          {(submissionInfo.athleteName || submissionInfo.playerName) && (
+            <div className="mb-2">
+              <div className="text-xs text-gray-500">Account Holder</div>
+              <div className="text-sm text-white">{submissionInfo.athleteName || submissionInfo.playerName}</div>
+            </div>
+          )}
           
-          <div className="flex gap-1 mb-2">
-            <button
-              onClick={() => video1Controls.onFrameStep?.(-1)}
-              className="flex-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs"
-            >
-              ← Fr
-            </button>
-            <button
-              onClick={() => video1Controls.onFrameStep?.(1)}
-              className="flex-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs"
-            >
-              Fr →
-            </button>
-          </div>
+          {(submissionInfo.userName || submissionInfo.submissionId) && (
+            <div className="mb-2">
+              <div className="text-xs text-gray-500">{submissionInfo.userName ? 'Submitted by' : 'Submission ID'}</div>
+              <div className="text-sm text-white">{submissionInfo.userName || submissionInfo.submissionId}</div>
+            </div>
+          )}
           
-          <div className="text-xs text-gray-400 text-center mb-2">
-            {formatTime(video1Controls.state?.currentTime || 0)} / {formatTime(video1Controls.state?.duration || 0)}
-          </div>
+          {(submissionInfo.createdAt || submissionInfo.submittedAt) && (
+            <div className="mb-2">
+              <div className="text-xs text-gray-500">Date</div>
+              <div className="text-sm text-white">
+                {new Date(submissionInfo.createdAt || submissionInfo.submittedAt).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </div>
+            </div>
+          )}
           
-          <input
-            type="range"
-            min={0}
-            max={video1Controls.state?.duration || 0}
-            step={0.01}
-            value={video1Controls.state?.currentTime || 0}
-            onChange={(e) => video1Controls.onSeek?.(parseFloat(e.target.value))}
-            className="w-full h-1"
-          />
+          {submissionInfo.coachCode && (
+            <div className="mb-2">
+              <div className="text-xs text-gray-500">Coach Code</div>
+              <div className="text-sm text-white">{submissionInfo.coachCode}</div>
+            </div>
+          )}
           
-          <div className="text-xs text-gray-500 text-center mt-1">
-            Frame: {getCurrentFrame(video1Controls.state?.currentTime || 0)}
-          </div>
+          {submissionInfo.videoSize && (
+            <div className="mb-2">
+              <div className="text-xs text-gray-500">Video Size</div>
+              <div className="text-sm text-white">{(submissionInfo.videoSize / (1024 * 1024)).toFixed(1)} MB</div>
+            </div>
+          )}
+          
+          {submissionInfo.cameraAngle && (
+            <div className="mb-2">
+              <div className="text-xs text-gray-500">Camera Angle</div>
+              <div className="text-sm text-white">{submissionInfo.cameraAngle}</div>
+            </div>
+          )}
+          
+          {submissionInfo.notes && (
+            <div className="mb-2">
+              <div className="text-xs text-gray-500">Notes</div>
+              <div className="text-sm text-gray-300">{submissionInfo.notes}</div>
+            </div>
+          )}
+          
+          {/* What they're looking for */}
+          {(submissionInfo.wantsBatAdvice || submissionInfo.wantsDrills || submissionInfo.wantsMechanics) && (
+            <div className="mb-2">
+              <div className="text-xs text-gray-500 mb-1">Looking for</div>
+              <div className="space-y-1">
+                {submissionInfo.wantsMechanics && (
+                  <div className="text-xs text-cyan-400">✓ Mechanics feedback</div>
+                )}
+                {submissionInfo.wantsDrills && (
+                  <div className="text-xs text-cyan-400">✓ Drill recommendations</div>
+                )}
+                {submissionInfo.wantsBatAdvice && (
+                  <div className="text-xs text-cyan-400">✓ Bat recommendations</div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
-
-      {/* Video 2 Playback Controls */}
-      {video2File && (currentViewMode === 'video2' || currentViewMode === 'split') && video2Controls && (
-        <div className="bg-gray-800 rounded-lg p-3">
-          <h3 className="text-sm font-semibold text-gray-300 mb-2">Video 2 Controls</h3>
-          
-          <div className="flex gap-1 mb-2">
-            <button
-              onClick={video2Controls.onPlayPause}
-              className="flex-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs"
-            >
-              {video2Controls.state?.isPlaying ? '⏸' : '▶'}
-            </button>
-          </div>
-          
-          <div className="flex gap-1 mb-2">
-            <button
-              onClick={() => video2Controls.onFrameStep?.(-1)}
-              className="flex-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs"
-            >
-              ← Fr
-            </button>
-            <button
-              onClick={() => video2Controls.onFrameStep?.(1)}
-              className="flex-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs"
-            >
-              Fr →
-            </button>
-          </div>
-          
-          <div className="text-xs text-gray-400 text-center mb-2">
-            {formatTime(video2Controls.state?.currentTime || 0)} / {formatTime(video2Controls.state?.duration || 0)}
-          </div>
-          
-          <input
-            type="range"
-            min={0}
-            max={video2Controls.state?.duration || 0}
-            step={0.01}
-            value={video2Controls.state?.currentTime || 0}
-            onChange={(e) => video2Controls.onSeek?.(parseFloat(e.target.value))}
-            className="w-full h-1"
-          />
-          
-          <div className="text-xs text-gray-500 text-center mt-1">
-            Frame: {getCurrentFrame(video2Controls.state?.currentTime || 0)}
-          </div>
-        </div>
-      )}
-
-      {/* Video 1 Load */}
+      
+      {/* Video Info */}
       <div className="bg-gray-800 rounded-lg p-3">
-        <h3 className="text-sm font-semibold text-gray-300 mb-2">Video 1</h3>
-        <label className="block">
-          <input
-            type="file"
-            accept="video/*"
-            onChange={onVideo1Select}
-            className="hidden"
-            id="video1-sidebar-input"
-          />
-          <label
-            htmlFor="video1-sidebar-input"
-            className={`block w-full px-2 py-1 rounded text-xs cursor-pointer transition-colors text-center ${
-              video1File 
-                ? 'bg-green-600 text-white hover:bg-green-700' 
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-            }`}
-          >
-            {video1File ? '✓ Loaded' : '+ Load Video'}
-          </label>
-        </label>
+        <h3 className="text-sm font-semibold text-gray-300 mb-2">Video Files</h3>
         {video1File && (
-          <div className="mt-2 text-xs text-gray-400 truncate">
-            {video1File.name}
+          <div className="mb-2">
+            <div className="text-xs text-gray-400 mb-1">
+              Video 1: {video1File.name}
+            </div>
+            {submissionInfo?.submissionId && (
+              <button
+                onClick={() => {
+                  // Get the original video URL from sessionStorage
+                  const selectedVideo = sessionStorage.getItem('selectedVideo');
+                  if (selectedVideo) {
+                    // Create a download link
+                    const link = document.createElement('a');
+                    link.href = selectedVideo;
+                    link.download = video1File.name || `submission-${submissionInfo.submissionId}.mp4`;
+                    link.target = '_blank';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }
+                }}
+                className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors flex items-center gap-1"
+                title="Download original submitted video"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                </svg>
+                Download Original
+              </button>
+            )}
           </div>
         )}
-      </div>
-
-      {/* Video 2 Load */}
-      <div className="bg-gray-800 rounded-lg p-3">
-        <h3 className="text-sm font-semibold text-gray-300 mb-2">Video 2</h3>
-        <label className="block">
-          <input
-            type="file"
-            accept="video/*"
-            onChange={onVideo2Select}
-            className="hidden"
-            id="video2-sidebar-input"
-          />
-          <label
-            htmlFor="video2-sidebar-input"
-            className={`block w-full px-2 py-1 rounded text-xs cursor-pointer transition-colors text-center ${
-              video2File 
-                ? 'bg-green-600 text-white hover:bg-green-700' 
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-            }`}
-          >
-            {video2File ? '✓ Loaded' : '+ Load Video'}
-          </label>
-        </label>
         {video2File && (
-          <div className="mt-2 text-xs text-gray-400 truncate">
-            {video2File.name}
+          <div className="text-xs text-gray-400">
+            Video 2: {video2File.name}
+          </div>
+        )}
+        {!video1File && !video2File && (
+          <div className="text-xs text-gray-500">
+            No videos loaded
           </div>
         )}
       </div>

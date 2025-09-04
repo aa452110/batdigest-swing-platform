@@ -10,6 +10,7 @@ const SimpleDrawingCanvas: React.FC<SimpleDrawingCanvasProps> = ({ videoElement 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState<{ x: number; y: number } | null>(null);
+  const [penPoints, setPenPoints] = useState<{ x: number; y: number }[]>([]);
   
   const { playback } = useVideoStore();
   const {
@@ -78,6 +79,25 @@ const SimpleDrawingCanvas: React.FC<SimpleDrawingCanvasProps> = ({ videoElement 
     ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
   };
 
+  // Draw pen (freehand)
+  const drawPen = (ctx: CanvasRenderingContext2D, points: { x: number; y: number }[], style: any) => {
+    if (points.length < 2) return;
+    
+    ctx.strokeStyle = style.color;
+    ctx.lineWidth = style.thickness;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    
+    for (let i = 1; i < points.length; i++) {
+      ctx.lineTo(points[i].x, points[i].y);
+    }
+    
+    ctx.stroke();
+  };
+
   // Redraw all annotations
   const redraw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -100,6 +120,13 @@ const SimpleDrawingCanvas: React.FC<SimpleDrawingCanvasProps> = ({ videoElement 
         const x = p.x * canvas.width;
         const y = p.y * canvas.height;
         drawDot(ctx, x, y, ann.style);
+      } else if (ann.tool === 'pen' && ann.points.length >= 2) {
+        // Pen tool uses all points for freehand drawing
+        const canvasPoints = ann.points.map(p => ({
+          x: p.x * canvas.width,
+          y: p.y * canvas.height
+        }));
+        drawPen(ctx, canvasPoints, ann.style);
       } else if (ann.points.length >= 2) {
         // Other tools need two points
         const p1 = ann.points[0];
@@ -182,10 +209,15 @@ const SimpleDrawingCanvas: React.FC<SimpleDrawingCanvasProps> = ({ videoElement 
     const pos = getMousePos(e);
     setStartPoint(pos);
     setIsDrawing(true);
+    
+    // For pen tool, start collecting points
+    if (currentTool === 'pen') {
+      setPenPoints([pos]);
+    }
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !startPoint) return;
+    if (!isDrawing) return;
     
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -195,6 +227,11 @@ const SimpleDrawingCanvas: React.FC<SimpleDrawingCanvasProps> = ({ videoElement 
     
     const currentPos = getMousePos(e);
     
+    // For pen tool, collect points
+    if (currentTool === 'pen') {
+      setPenPoints(prev => [...prev, currentPos]);
+    }
+    
     // Redraw everything
     redraw();
     
@@ -203,17 +240,28 @@ const SimpleDrawingCanvas: React.FC<SimpleDrawingCanvasProps> = ({ videoElement 
     ctx.globalAlpha = 0.7;
     
     switch (currentTool) {
+      case 'pen':
+        if (penPoints.length > 0) {
+          drawPen(ctx, [...penPoints, currentPos], currentStyle);
+        }
+        break;
       case 'line':
-        drawLine(ctx, startPoint.x, startPoint.y, currentPos.x, currentPos.y, currentStyle);
+        if (startPoint) {
+          drawLine(ctx, startPoint.x, startPoint.y, currentPos.x, currentPos.y, currentStyle);
+        }
         break;
       case 'dot':
         drawDot(ctx, currentPos.x, currentPos.y, currentStyle);
         break;
       case 'arrow':
-        drawArrow(ctx, startPoint.x, startPoint.y, currentPos.x, currentPos.y, currentStyle);
+        if (startPoint) {
+          drawArrow(ctx, startPoint.x, startPoint.y, currentPos.x, currentPos.y, currentStyle);
+        }
         break;
       case 'box':
-        drawBox(ctx, startPoint.x, startPoint.y, currentPos.x, currentPos.y, currentStyle);
+        if (startPoint) {
+          drawBox(ctx, startPoint.x, startPoint.y, currentPos.x, currentPos.y, currentStyle);
+        }
         break;
     }
     
@@ -221,20 +269,42 @@ const SimpleDrawingCanvas: React.FC<SimpleDrawingCanvasProps> = ({ videoElement 
   };
 
   const handleMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !startPoint) return;
+    if (!isDrawing) return;
     
     const canvas = canvasRef.current;
     if (!canvas) return;
     
     const endPos = getMousePos(e);
     
-    // For dot tool, only use the end position
-    const points = currentTool === 'dot' 
-      ? [{ x: endPos.x / canvas.width, y: endPos.y / canvas.height }]
-      : [
-          { x: startPoint.x / canvas.width, y: startPoint.y / canvas.height },
-          { x: endPos.x / canvas.width, y: endPos.y / canvas.height },
-        ];
+    let points;
+    
+    if (currentTool === 'pen') {
+      // For pen tool, normalize all collected points
+      const allPoints = [...penPoints, endPos];
+      if (allPoints.length < 2) {
+        // Need at least 2 points for pen
+        setIsDrawing(false);
+        setPenPoints([]);
+        return;
+      }
+      points = allPoints.map(p => ({
+        x: p.x / canvas.width,
+        y: p.y / canvas.height
+      }));
+    } else if (currentTool === 'dot') {
+      // For dot tool, only use the end position
+      points = [{ x: endPos.x / canvas.width, y: endPos.y / canvas.height }];
+    } else if (startPoint) {
+      // For other tools, use start and end points
+      points = [
+        { x: startPoint.x / canvas.width, y: startPoint.y / canvas.height },
+        { x: endPos.x / canvas.width, y: endPos.y / canvas.height },
+      ];
+    } else {
+      // No valid points, cancel
+      setIsDrawing(false);
+      return;
+    }
     
     // Create annotation with normalized coordinates
     const annotation: Annotation = {
@@ -250,6 +320,7 @@ const SimpleDrawingCanvas: React.FC<SimpleDrawingCanvasProps> = ({ videoElement 
     
     setIsDrawing(false);
     setStartPoint(null);
+    setPenPoints([]);
     redraw();
   };
 

@@ -13,6 +13,11 @@ export type VideoSubmission = {
   r2Key: string;
   videoSize: number;
   userId: number;
+  coachCode?: string;
+  analysisResult?: string;
+  analyzedAt?: string;
+  // When available, the API should return a direct analyzed video URL
+  downloadUrl?: string;
 };
 
 export const api = {
@@ -32,6 +37,26 @@ export const api = {
       return data.submissions || [];
     } catch (error) {
       console.error('Failed to fetch submissions:', error);
+      return [];
+    }
+  },
+
+  async getAllSubmissions(): Promise<VideoSubmission[]> {
+    try {
+      const response = await fetch(`${API_BASE}/api/submissions`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.submissions || [];
+    } catch (error) {
+      console.error('Failed to fetch all submissions:', error);
       return [];
     }
   },
