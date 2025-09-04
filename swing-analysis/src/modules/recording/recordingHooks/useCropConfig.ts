@@ -15,13 +15,15 @@ export function useCropConfig() {
   const lastCaptureDimsRef = useRef<{ vw: number; vh: number } | null>(null);
 
   const increaseCrop = useCallback((stepPx = 25) => {
-    const newH = Math.max(180, cropPreset.h + stepPx);
+    const baseH = Number.isFinite(cropPreset.h) ? cropPreset.h : 720;
+    const newH = Math.max(180, baseH + stepPx);
     const newW = Math.round(newH * (16 / 9));
     setCropPreset({ w: newW, h: newH });
   }, [cropPreset.h]);
 
   const decreaseCrop = useCallback((stepPx = 25) => {
-    const newH = Math.max(180, cropPreset.h - stepPx);
+    const baseH = Number.isFinite(cropPreset.h) ? cropPreset.h : 720;
+    const newH = Math.max(180, baseH - stepPx);
     const newW = Math.round(newH * (16 / 9));
     setCropPreset({ w: newW, h: newH });
   }, [cropPreset.h]);
