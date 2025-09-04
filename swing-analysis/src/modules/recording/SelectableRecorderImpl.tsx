@@ -163,7 +163,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
       {/* Selection overlay removed */}
 
       <div className="bg-gray-800 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-300 mb-3">Selectable Recording</h3>
+        <h3 className="text-sm font-semibold text-gray-300 mb-3">Recording</h3>
         
         {
           <video
