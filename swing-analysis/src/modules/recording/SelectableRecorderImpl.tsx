@@ -14,6 +14,7 @@ import UploadOverlay from './recordingComponents/UploadOverlay';
 import { createDrawFrame } from './recordingFunctions/drawFrame';
 import { createAnimator } from './recordingFunctions/animation';
 import { stopAllResources } from './recordingFunctions/teardown';
+import { probeDisplayDims } from './recordingFunctions/media';
 
 export interface SelectableRecorderProps {
   onAnalysisSaved?: () => void;
@@ -30,6 +31,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
   const recordedChunksRef = useRef<Blob[]>([]);
   
   const [recordedSegments, setRecordedSegments] = useState<any[]>([]);
+  const hasProbedDimsRef = useRef(false);
   
   
   const { 
@@ -39,7 +41,6 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
     hasAppliedCrop,
     isConfigMode, setIsConfigMode,
     showAreaPreview, setShowAreaPreview,
-    anchorTop, setAnchorTop,
     increaseCrop, decreaseCrop,
     applyScreenSize, resetScreenSize,
     lockedRect,
@@ -65,6 +66,21 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
     getDisplaySurface: () => (displayStreamRef.current?.getVideoTracks?.()[0]?.getSettings?.()?.displaySurface || 'unknown'),
     lastCaptureDims: lastCaptureDimsRef.current,
   });
+
+  // When entering config mode and we don't yet know capture dims, probe once
+  useEffect(() => {
+    if (isConfigMode && !lastCaptureDimsRef.current && !hasProbedDimsRef.current) {
+      (async () => {
+        const dims = await probeDisplayDims();
+        if (dims?.vw && dims?.vh) {
+          lastCaptureDimsRef.current = { vw: dims.vw, vh: dims.vh };
+          hasProbedDimsRef.current = true;
+          // trigger overlay update
+          window.dispatchEvent(new CustomEvent('swing:debug', { detail: { note: 'probed-dims', capture: dims } }));
+        }
+      })();
+    }
+  }, [isConfigMode]);
   
   // Selection overlay removed; using center-crop controls
 
@@ -83,9 +99,8 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
       lockedRect,
       debugMode,
       lastDebugUpdateRef,
-      anchorTop,
     }),
-    [appliedCrop, lockedRect, debugMode, anchorTop]
+    [appliedCrop, lockedRect, debugMode]
   );
 
   // Animation loop (extracted)
@@ -195,7 +210,17 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
           {!isRecording && !isConfigMode && (
             <>
               <button
-                onClick={() => { setIsConfigMode(true); setShowAreaPreview(true); }}
+                onClick={async () => {
+                  setIsConfigMode(true);
+                  setShowAreaPreview(true);
+                  if (!lastCaptureDimsRef.current && !hasProbedDimsRef.current) {
+                    const dims = await probeDisplayDims();
+                    if (dims?.vw && dims?.vh) {
+                      lastCaptureDimsRef.current = { vw: dims.vw, vh: dims.vh };
+                      hasProbedDimsRef.current = true;
+                    }
+                  }
+                }}
                 className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors font-semibold"
               >
                 Set Recording Area
@@ -218,7 +243,6 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
               cropPreset={cropPreset}
               offsetNorm={offsetNorm}
               showAreaPreview={showAreaPreview}
-              anchorTop={anchorTop}
               onIncreaseCrop={increaseCrop}
               onDecreaseCrop={decreaseCrop}
               onOffsetUp={() => setOffsetNorm(v => ({ ...v, y: Math.max(-1, v.y - 0.1) }))}
@@ -227,7 +251,6 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
               onOffsetRight={() => setOffsetNorm(v => ({ ...v, x: Math.min(1, v.x + 0.1) }))}
               onOffsetReset={() => setOffsetNorm({ x: 0, y: 0 })}
               onTogglePreview={setShowAreaPreview}
-              onToggleAnchorTop={setAnchorTop}
               onApply={applyScreenSizeBound}
               onCancel={() => { setIsConfigMode(false); setShowAreaPreview(false); }}
             />

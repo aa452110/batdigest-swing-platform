@@ -11,7 +11,6 @@ export function useCropConfig() {
   const [hasAppliedCrop, setHasAppliedCrop] = useState(false);
   const [isConfigMode, setIsConfigMode] = useState(false);
   const [showAreaPreview, setShowAreaPreview] = useState(false);
-  const [anchorTop, setAnchorTop] = useState(false);
   const [lockedRect, setLockedRect] = useState<LockedRect>(null);
   const lastCaptureDimsRef = useRef<{ vw: number; vh: number } | null>(null);
 
@@ -28,14 +27,13 @@ export function useCropConfig() {
   }, [cropPreset.h]);
 
   const applyScreenSize = useCallback((getDims: () => { vw: number | null; vh: number | null }) => {
-    setAppliedCrop({ w: cropPreset.w, h: cropPreset.h, x: offsetNorm.x, y: anchorTop ? -1 : offsetNorm.y });
+    setAppliedCrop({ w: cropPreset.w, h: cropPreset.h, x: offsetNorm.x, y: offsetNorm.y });
     setHasAppliedCrop(true);
     setIsConfigMode(false);
     setShowAreaPreview(false);
     try {
-      sessionStorage.setItem('swingAppliedCrop', JSON.stringify({ w: cropPreset.w, h: cropPreset.h, x: offsetNorm.x, y: anchorTop ? -1 : offsetNorm.y }));
+      sessionStorage.setItem('swingAppliedCrop', JSON.stringify({ w: cropPreset.w, h: cropPreset.h, x: offsetNorm.x, y: offsetNorm.y }));
       sessionStorage.setItem('swingHasAppliedCrop', 'true');
-      sessionStorage.setItem('swingAnchorTop', anchorTop ? 'true' : 'false');
     } catch {}
 
     try {
@@ -47,15 +45,13 @@ export function useCropConfig() {
         const marginX = Math.max(0, (vw - desiredW) / 2);
         const marginY = Math.max(0, (vh - desiredH) / 2);
         const sx = Math.max(0, Math.min(vw - desiredW, Math.floor(marginX + offsetNorm.x * marginX)));
-        const sy = anchorTop
-          ? 0
-          : Math.max(0, Math.min(vh - desiredH, Math.floor(marginY + offsetNorm.y * marginY)));
+        const sy = Math.max(0, Math.min(vh - desiredH, Math.floor(marginY + offsetNorm.y * marginY)));
         setLockedRect({ sx, sy, w: desiredW, h: desiredH });
       } else {
         setLockedRect(null);
       }
     } catch {}
-  }, [cropPreset.w, cropPreset.h, offsetNorm.x, offsetNorm.y, anchorTop]);
+  }, [cropPreset.w, cropPreset.h, offsetNorm.x, offsetNorm.y]);
 
   const resetScreenSize = useCallback(() => {
     setCropPreset({ w: 1280, h: 720 });
@@ -83,8 +79,6 @@ export function useCropConfig() {
     setIsConfigMode,
     showAreaPreview,
     setShowAreaPreview,
-    anchorTop,
-    setAnchorTop,
     increaseCrop,
     decreaseCrop,
     applyScreenSize,

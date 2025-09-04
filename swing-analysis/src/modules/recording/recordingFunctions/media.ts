@@ -14,3 +14,19 @@ export async function getDisplayMediaWithCursor(options?: { audio?: boolean }) {
   return navigator.mediaDevices.getDisplayMedia(constraints);
 }
 
+export async function probeDisplayDims(): Promise<{ vw: number; vh: number; displaySurface?: string } | null> {
+  try {
+    const stream = await getDisplayMediaWithCursor({ audio: false });
+    const track = stream.getVideoTracks?.()[0];
+    const settings: any = track?.getSettings?.() || {};
+    const vw = settings.width || null;
+    const vh = settings.height || null;
+    const displaySurface = settings.displaySurface;
+    // stop immediately; this is a probe only
+    stream.getTracks().forEach((t) => t.stop());
+    if (vw && vh) return { vw, vh, displaySurface } as any;
+    return null;
+  } catch {
+    return null;
+  }
+}
