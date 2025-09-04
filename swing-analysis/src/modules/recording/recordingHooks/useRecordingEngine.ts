@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { getDisplayMediaWithCursor } from '../recordingFunctions/media';
+// import { getDisplayMediaWithCursor } from '../recordingFunctions/media';
 
 type Params = {
   canvasRef: React.MutableRefObject<HTMLCanvasElement | null>;
@@ -54,7 +54,8 @@ export function useRecordingEngine(params: Params) {
           try { displayStream = await getCaptureStream(); } catch {}
         }
         if (!displayStream) {
-          displayStream = await getDisplayMediaWithCursor({ audio: false });
+          setRecordingWarning('Region Capture is required. Select "This Tab" and ensure Chrome supports Region Capture.');
+          return; // Do not fall back to generic screen capture
         }
         displayStreamRef.current = displayStream;
       }

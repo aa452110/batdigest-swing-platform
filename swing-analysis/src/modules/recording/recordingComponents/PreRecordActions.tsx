@@ -43,7 +43,7 @@ const PreRecordActions: React.FC<Props> = ({ hasAppliedCrop, micStatus, showMicT
             Start Recording
           </button>
           <div className="text-[11px] text-gray-400 mt-1">
-            Tip: In the screen share prompt, select <span className="text-gray-200 font-semibold">This Tab</span> for best capture (includes all videos and annotations).
+            Required: In the share prompt, select <span className="text-gray-200 font-semibold">This Tab</span> (Chrome). If it doesn't appear, open the analyzer in a new window and try again.
           </div>
         </>
       )}
