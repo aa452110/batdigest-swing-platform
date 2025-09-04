@@ -195,7 +195,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
           {!isRecording && (
             <>
               <PreRecordActions
-                hasAppliedCrop={hasAppliedCrop}
+                hasAppliedCrop={true}
                 micStatus={micStatus}
                 showMicTest={showMicTest}
                 audioLevel={audioLevel}
