@@ -14,7 +14,6 @@ import UploadOverlay from './recordingComponents/UploadOverlay';
 import { createDrawFrame } from './recordingFunctions/drawFrame';
 import { createAnimator } from './recordingFunctions/animation';
 import { stopAllResources } from './recordingFunctions/teardown';
-import { probeDisplayDims } from './recordingFunctions/media';
 
 export interface SelectableRecorderProps {
   onAnalysisSaved?: () => void;
@@ -31,7 +30,6 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
   const recordedChunksRef = useRef<Blob[]>([]);
   
   const [recordedSegments, setRecordedSegments] = useState<any[]>([]);
-  const hasProbedDimsRef = useRef(false);
   
   
   const { 
@@ -47,8 +45,8 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
     lastCaptureDimsRef,
   } = useCropConfig();
   
-  // Debug
-  const [debugMode] = useState(true);
+  // Debug (disabled by default)
+  const [debugMode] = useState(false);
     const lastDebugUpdateRef = useRef<number>(0);
   
   const { micStatus, audioLevel, showMicTest, setMicStatus, setupAudioMonitoring, stopAudioMonitoring, testMicrophone } = useMicMonitor();
@@ -57,6 +55,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
 
 
   useDebugOverlay({
+    enabled: debugMode,
     isConfigMode,
     cropPreset,
     appliedCrop,
@@ -67,20 +66,6 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
     lastCaptureDims: lastCaptureDimsRef.current,
   });
 
-  // When entering config mode and we don't yet know capture dims, probe once
-  useEffect(() => {
-    if (isConfigMode && !lastCaptureDimsRef.current && !hasProbedDimsRef.current) {
-      (async () => {
-        const dims = await probeDisplayDims();
-        if (dims?.vw && dims?.vh) {
-          lastCaptureDimsRef.current = { vw: dims.vw, vh: dims.vh };
-          hasProbedDimsRef.current = true;
-          // trigger overlay update
-          window.dispatchEvent(new CustomEvent('swing:debug', { detail: { note: 'probed-dims', capture: dims } }));
-        }
-      })();
-    }
-  }, [isConfigMode]);
   
   // Selection overlay removed; using center-crop controls
 
@@ -210,16 +195,9 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
           {!isRecording && !isConfigMode && (
             <>
               <button
-                onClick={async () => {
+                onClick={() => {
                   setIsConfigMode(true);
                   setShowAreaPreview(true);
-                  if (!lastCaptureDimsRef.current && !hasProbedDimsRef.current) {
-                    const dims = await probeDisplayDims();
-                    if (dims?.vw && dims?.vh) {
-                      lastCaptureDimsRef.current = { vw: dims.vw, vh: dims.vh };
-                      hasProbedDimsRef.current = true;
-                    }
-                  }
                 }}
                 className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors font-semibold"
               >

@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 type Dims = { vw: number | null; vh: number | null };
 
 export function useDebugOverlay(params: {
+  enabled?: boolean;
   isConfigMode: boolean;
   cropPreset: { w: number; h: number };
   appliedCrop: { w: number; h: number; x: number; y: number };
@@ -12,9 +13,10 @@ export function useDebugOverlay(params: {
   getDisplaySurface: () => string;
   lastCaptureDims: { vw: number; vh: number } | null;
 }) {
-  const { isConfigMode, cropPreset, appliedCrop, offsetNorm, showAreaPreview, getDims, getDisplaySurface, lastCaptureDims } = params;
+  const { enabled = false, isConfigMode, cropPreset, appliedCrop, offsetNorm, showAreaPreview, getDims, getDisplaySurface, lastCaptureDims } = params;
 
   useEffect(() => {
+    if (!enabled) return;
     const id = window.setInterval(() => {
       try {
         const { vw, vh } = getDims();
@@ -23,12 +25,12 @@ export function useDebugOverlay(params: {
         const useH = isConfigMode ? cropPreset.h : appliedCrop.h;
         const useX = isConfigMode ? offsetNorm.x : appliedCrop.x;
         const useY = isConfigMode ? offsetNorm.y : appliedCrop.y;
-        const desiredW = vw ? Math.min(vw, Math.round(useW * dpr)) : null;
-        const desiredH = vh ? Math.min(vh, Math.round(useH * dpr)) : null;
-        const marginX = desiredW && vw ? Math.max(0, (vw - desiredW) / 2) : null;
-        const marginY = desiredH && vh ? Math.max(0, (vh - desiredH) / 2) : null;
-        const sx = marginX !== null && vw ? Math.max(0, Math.min(vw - (desiredW || 0), Math.floor((marginX || 0) + useX * (marginX || 0)))) : null;
-        const sy = marginY !== null && vh ? Math.max(0, Math.min(vh - (desiredH || 0), Math.floor((marginY || 0) + useY * (marginY || 0)))) : null;
+        const desiredW = vw ? Math.min(vw, Math.round(useW * dpr)) : Math.round(useW);
+        const desiredH = vh ? Math.min(vh, Math.round(useH * dpr)) : Math.round(useH);
+        const marginX = vw ? Math.max(0, (vw - desiredW) / 2) : null;
+        const marginY = vh ? Math.max(0, (vh - desiredH) / 2) : null;
+        const sx = marginX !== null && vw ? Math.max(0, Math.min(vw - desiredW, Math.floor(marginX + useX * marginX))) : null;
+        const sy = marginY !== null && vh ? Math.max(0, Math.min(vh - desiredH, Math.floor(marginY + useY * marginY))) : null;
 
         const preview = (() => {
           const viewportW = typeof window !== 'undefined' ? window.innerWidth : 1280;
@@ -53,9 +55,9 @@ export function useDebugOverlay(params: {
         const payload = {
           capture: vw && vh ? { vw, vh, dpr, displaySurface: getDisplaySurface() } : 'no-capture',
           applied: { w: useW, h: useH, x: useX, y: useY },
-          desired: desiredW && desiredH ? { w: desiredW, h: desiredH } : 'n/a',
-          margins: marginX !== null && marginY !== null ? { x: Math.round(marginX), y: Math.round(marginY) } : 'n/a',
-          cropTL: sx !== null && sy !== null ? { sx, sy } : 'n/a',
+          desired: { w: desiredW, h: desiredH },
+          margins: marginX !== null && marginY !== null ? { x: Math.round(marginX), y: Math.round(marginY) } : 'unknown',
+          cropTL: sx !== null && sy !== null ? { sx, sy } : 'unknown',
           output: { w: 1280, h: 720 },
           previewRect: showAreaPreview ? preview : 'preview-off',
           note: 'periodic',
@@ -65,5 +67,5 @@ export function useDebugOverlay(params: {
       } catch {}
     }, 500);
     return () => window.clearInterval(id);
-  }, [isConfigMode, cropPreset, appliedCrop, offsetNorm, showAreaPreview, getDims, getDisplaySurface, lastCaptureDims]);
+  }, [enabled, isConfigMode, cropPreset, appliedCrop, offsetNorm, showAreaPreview, getDims, getDisplaySurface, lastCaptureDims]);
 }
