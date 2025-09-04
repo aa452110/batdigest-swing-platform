@@ -42,6 +42,9 @@ const PreRecordActions: React.FC<Props> = ({ hasAppliedCrop, micStatus, showMicT
             <div className="w-2 h-2 bg-white rounded-full" />
             Start Recording
           </button>
+          <div className="text-[11px] text-gray-400 mt-1">
+            Tip: In the screen share prompt, select <span className="text-gray-200 font-semibold">This Tab</span> for best capture (includes all videos and annotations).
+          </div>
         </>
       )}
       <button onClick={onResetArea} className="w-full px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors text-sm">Reset Record Area</button>
@@ -50,4 +53,3 @@ const PreRecordActions: React.FC<Props> = ({ hasAppliedCrop, micStatus, showMicT
 };
 
 export default PreRecordActions;
-

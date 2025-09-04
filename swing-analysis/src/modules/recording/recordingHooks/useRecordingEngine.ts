@@ -15,6 +15,7 @@ type Params = {
   setMicStatus: (s: 'idle' | 'active' | 'denied' | 'error') => void;
   onSegmentReady: (segment: { id: string; url: string; blob: Blob; duration: number }) => void;
   maxDurationSec?: number;
+  getCaptureStream?: () => Promise<MediaStream | null>;
 };
 
 export function useRecordingEngine(params: Params) {
@@ -32,6 +33,7 @@ export function useRecordingEngine(params: Params) {
     setMicStatus,
     onSegmentReady,
     maxDurationSec = 300,
+    getCaptureStream,
   } = params;
 
   const [isRecording, setIsRecording] = useState(false);
@@ -47,7 +49,13 @@ export function useRecordingEngine(params: Params) {
     try {
       setRecordingWarning('');
       if (!displayStreamRef.current) {
-        const displayStream = await getDisplayMediaWithCursor({ audio: false });
+        let displayStream: MediaStream | null = null;
+        if (getCaptureStream) {
+          try { displayStream = await getCaptureStream(); } catch {}
+        }
+        if (!displayStream) {
+          displayStream = await getDisplayMediaWithCursor({ audio: false });
+        }
         displayStreamRef.current = displayStream;
       }
       const video = videoRef.current;

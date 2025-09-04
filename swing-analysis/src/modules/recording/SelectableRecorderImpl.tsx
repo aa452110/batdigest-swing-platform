@@ -14,6 +14,7 @@ import UploadOverlay from './recordingComponents/UploadOverlay';
 import { createDrawFrame } from './recordingFunctions/drawFrame';
 import { createAnimator } from './recordingFunctions/animation';
 import { stopAllResources } from './recordingFunctions/teardown';
+import { captureElementRegion } from './recordingFunctions/regionCapture';
 
 export interface SelectableRecorderProps {
   onAnalysisSaved?: () => void;
@@ -118,6 +119,10 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
     setMicStatus,
     onSegmentReady,
     maxDurationSec: 300,
+    getCaptureStream: async () => {
+      const el = (document.getElementById('analysis-root') || document.body) as HTMLElement;
+      return await captureElementRegion(el, { audio: false });
+    },
   });
 
   // Bind crop apply to current capture dimensions

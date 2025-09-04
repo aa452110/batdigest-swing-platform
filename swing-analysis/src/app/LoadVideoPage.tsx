@@ -149,7 +149,7 @@ const LoadVideoPage: React.FC = () => {
   }, [setVideo1, videoLoaded]);
   
   return (
-    <div style={{
+    <div id="analysis-root" style={{
       position: 'fixed',
       top: 0,
       left: 0,
