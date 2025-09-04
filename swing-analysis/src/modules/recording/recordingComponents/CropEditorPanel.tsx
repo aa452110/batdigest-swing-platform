@@ -33,7 +33,7 @@ const CropEditorPanel: React.FC<Props> = ({
 }) => {
   return (
     <div style={{ position: 'relative' }}>
-      <div className="text-[11px] text-gray-400 mt-1">Editing: {cropPreset.w}×{cropPreset.h} → output 1280×720</div>
+      <div className="text-[11px] text-gray-400 mt-1">Editing: {cropPreset.w}×{cropPreset.h} → output native</div>
       <div className="mt-2 flex items-center gap-2">
         <span className="text-[11px] text-gray-300">Size:</span>
         <button onClick={onDecreaseCrop} className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded" title="Decrease crop (−25px height)">−</button>

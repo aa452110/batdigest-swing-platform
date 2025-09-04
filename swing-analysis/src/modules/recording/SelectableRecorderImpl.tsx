@@ -4,8 +4,9 @@ import { useCropConfig } from './recordingHooks/useCropConfig';
 import { useUpload } from './recordingHooks/useUpload';
 import { useDebugOverlay } from './recordingHooks/useDebugOverlay';
 import { useRecordingEngine } from './recordingHooks/useRecordingEngine';
-import AreaPreviewOverlay from './recordingComponents/AreaPreviewOverlay';
-import CropEditorPanel from './recordingComponents/CropEditorPanel';
+// Area preview and crop editor not used with Region Capture
+// import AreaPreviewOverlay from './recordingComponents/AreaPreviewOverlay';
+// import CropEditorPanel from './recordingComponents/CropEditorPanel';
 import PreRecordActions from './recordingComponents/PreRecordActions';
 // Selection overlay removed in favor of center-crop editor
 import RecordingControls from './recordingComponents/RecordingControls';
@@ -56,7 +57,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
 
 
   useDebugOverlay({
-    enabled: debugMode,
+    enabled: false,
     isConfigMode,
     cropPreset,
     appliedCrop,
@@ -120,7 +121,8 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
     onSegmentReady,
     maxDurationSec: 300,
     getCaptureStream: async () => {
-      const el = (document.getElementById('analysis-root') || document.body) as HTMLElement;
+      const root = document.getElementById('analysis-root') as HTMLElement | null;
+      const el = (root?.querySelector(':scope > div') as HTMLElement) || root || document.body;
       return await captureElementRegion(el, { audio: false });
     },
   });
@@ -156,14 +158,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
 
   return (
     <>
-      <AreaPreviewOverlay
-        show={showAreaPreview}
-        isRecording={isRecording}
-        cropWidth={cropPreset.w}
-        basisCssWidth={(lastCaptureDimsRef.current?.vw || null) && ((lastCaptureDimsRef.current!.vw) / ((typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1)) as number | null}
-        offsetX={offsetNorm.x}
-        offsetY={offsetNorm.y}
-      />
+      {/* Area preview disabled with Region Capture */}
 
       {/* Selection overlay removed */}
 
@@ -197,18 +192,8 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
         />
         
         <div className="space-y-3">
-          {!isRecording && !isConfigMode && (
+          {!isRecording && (
             <>
-              <button
-                onClick={() => {
-                  setIsConfigMode(true);
-                  setShowAreaPreview(true);
-                }}
-                className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors font-semibold"
-              >
-                Set Recording Area
-              </button>
-              <div className="text-[11px] text-gray-400">Current: {appliedCrop.w}×{appliedCrop.h} | Offsets: {(appliedCrop.x*100).toFixed(0)}%, {(appliedCrop.y*100).toFixed(0)}%</div>
               <PreRecordActions
                 hasAppliedCrop={hasAppliedCrop}
                 micStatus={micStatus}
@@ -216,27 +201,9 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
                 audioLevel={audioLevel}
                 onTestMic={testMicrophone}
                 onStart={startRecording}
-                onResetArea={resetScreenSize}
+                onResetArea={() => { /* disabled */ }}
               />
             </>
-          )}
-
-          {!isRecording && isConfigMode && (
-            <CropEditorPanel
-              cropPreset={cropPreset}
-              offsetNorm={offsetNorm}
-              showAreaPreview={showAreaPreview}
-              onIncreaseCrop={increaseCrop}
-              onDecreaseCrop={decreaseCrop}
-              onOffsetUp={() => setOffsetNorm(v => ({ ...v, y: Math.max(-1, v.y - 0.1) }))}
-              onOffsetDown={() => setOffsetNorm(v => ({ ...v, y: Math.min(1, v.y + 0.1) }))}
-              onOffsetLeft={() => setOffsetNorm(v => ({ ...v, x: Math.max(-1, v.x - 0.1) }))}
-              onOffsetRight={() => setOffsetNorm(v => ({ ...v, x: Math.min(1, v.x + 0.1) }))}
-              onOffsetReset={() => setOffsetNorm({ x: 0, y: 0 })}
-              onTogglePreview={setShowAreaPreview}
-              onApply={applyScreenSizeBound}
-              onCancel={() => { setIsConfigMode(false); setShowAreaPreview(false); }}
-            />
           )}
           
           {/* SelectionPanel removed */}

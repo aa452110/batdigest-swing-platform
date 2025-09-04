@@ -47,7 +47,7 @@ const PreRecordActions: React.FC<Props> = ({ hasAppliedCrop, micStatus, showMicT
           </div>
         </>
       )}
-      <button onClick={onResetArea} className="w-full px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors text-sm">Reset Record Area</button>
+      {/* Reset Record Area disabled with Region Capture */}
     </>
   );
 };
