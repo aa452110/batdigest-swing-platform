@@ -202,6 +202,12 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
                 onTestMic={testMicrophone}
                 onStart={startRecording}
                 onResetArea={() => { /* disabled */ }}
+                onPopOut={() => {
+                  try {
+                    const w = window.open(window.location.href, '_blank', 'noopener,noreferrer,width=1600,height=900');
+                    w && w.focus();
+                  } catch {}
+                }}
               />
             </>
           )}

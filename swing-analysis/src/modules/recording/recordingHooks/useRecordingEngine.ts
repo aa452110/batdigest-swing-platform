@@ -48,6 +48,9 @@ export function useRecordingEngine(params: Params) {
   const startRecording = useCallback(async () => {
     try {
       setRecordingWarning('');
+      // Small delay + focus to help Chrome enumerate the current tab in picker
+      await new Promise((r) => setTimeout(r, 150));
+      try { window.focus(); } catch {}
       if (!displayStreamRef.current) {
         let displayStream: MediaStream | null = null;
         if (getCaptureStream) {

@@ -8,9 +8,10 @@ type Props = {
   onTestMic: () => void;
   onStart: () => void;
   onResetArea: () => void;
+  onPopOut?: () => void;
 };
 
-const PreRecordActions: React.FC<Props> = ({ hasAppliedCrop, micStatus, showMicTest, audioLevel, onTestMic, onStart, onResetArea }) => {
+const PreRecordActions: React.FC<Props> = ({ hasAppliedCrop, micStatus, showMicTest, audioLevel, onTestMic, onStart, onResetArea, onPopOut }) => {
   return (
     <>
       {hasAppliedCrop && (
@@ -45,6 +46,11 @@ const PreRecordActions: React.FC<Props> = ({ hasAppliedCrop, micStatus, showMicT
           <div className="text-[11px] text-gray-400 mt-1">
             Required: In the share prompt, select <span className="text-gray-200 font-semibold">This Tab</span> (Chrome). If it doesn't appear, open the analyzer in a new window and try again.
           </div>
+          {onPopOut && (
+            <button onClick={onPopOut} className="w-full mt-2 px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors text-sm">
+              Pop Out Analyzer (new window)
+            </button>
+          )}
         </>
       )}
       {/* Reset Record Area disabled with Region Capture */}
