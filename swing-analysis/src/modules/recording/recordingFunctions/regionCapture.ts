@@ -5,13 +5,17 @@
 export async function captureElementRegion(element: HTMLElement, opts?: { audio?: boolean }): Promise<MediaStream | null> {
   try {
     const audio = !!opts?.audio;
-    // Ask for current tab if possible
+    // Ensure this tab is foreground
+    try { window.focus(); } catch {}
+    // Ask for current tab explicitly
     const displayConstraints: any = {
       video: {
         displaySurface: 'browser',
         preferCurrentTab: true,
+        selfBrowserSurface: 'include',
+        cursor: 'always',
       },
-      audio: false,
+      audio: audio, // capture tab audio if requested
     };
     const stream: MediaStream = await navigator.mediaDevices.getDisplayMedia(displayConstraints);
     const track = stream.getVideoTracks?.()[0];
@@ -22,7 +26,7 @@ export async function captureElementRegion(element: HTMLElement, opts?: { audio?
     // @ts-expect-error: cropTo is experimental on MediaStreamTrack
     const canCrop = !!(track as any).cropTo && !!CropTarget?.fromElement;
     if (!canCrop) {
-      // Region capture not available
+      // Region capture not available - return full tab stream (caller may decide)
       return stream;
     }
 
@@ -33,18 +37,16 @@ export async function captureElementRegion(element: HTMLElement, opts?: { audio?
     // @ts-expect-error: experimental API
     await (track as any).cropTo(target);
 
-    if (audio) {
-      try {
-        const mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
-        mic.getAudioTracks().forEach((t) => stream.addTrack(t));
-      } catch {
-        // ignore mic failures
-      }
-    }
+    // Do not add mic here; mic is managed by recording engine to avoid duplicates
+
+    // Debug: verify what we actually captured
+    try {
+      const settings: any = (track as any).getSettings?.() || {};
+      console.log('[RegionCapture] displaySurface:', settings.displaySurface, 'width:', settings.width, 'height:', settings.height);
+    } catch {}
 
     return stream;
   } catch {
     return null;
   }
 }
-

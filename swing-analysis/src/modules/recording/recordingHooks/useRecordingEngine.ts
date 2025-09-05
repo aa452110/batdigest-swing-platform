@@ -74,7 +74,13 @@ export function useRecordingEngine(params: Params) {
 
       const canvasStream = canvas.captureStream(30);
       const combinedStream = new MediaStream();
+      // Video from canvas compositor
       canvasStream.getVideoTracks().forEach((t) => combinedStream.addTrack(t));
+      // Add tab audio (if available from display capture)
+      try {
+        const tabAudioTracks = displayStreamRef.current?.getAudioTracks?.() || [];
+        tabAudioTracks.forEach((t) => combinedStream.addTrack(t));
+      } catch {}
 
       try {
         const audioStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });

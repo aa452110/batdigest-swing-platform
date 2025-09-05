@@ -123,7 +123,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
     getCaptureStream: async () => {
       const root = document.getElementById('analysis-root') as HTMLElement | null;
       const el = (root?.querySelector(':scope > div') as HTMLElement) || root || document.body;
-      return await captureElementRegion(el, { audio: false });
+      return await captureElementRegion(el, { audio: true });
     },
   });
 
