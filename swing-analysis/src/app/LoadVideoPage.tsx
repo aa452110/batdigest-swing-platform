@@ -60,8 +60,11 @@ const LoadVideoPage: React.FC = () => {
   // Move video up higher on the page (35% from top instead of 50%)
   const topPosition = '35%';
   
-  // Add warning for page refresh
+  // Add warning for page refresh (disabled in local dev for faster iteration)
   useEffect(() => {
+    const isDev = (typeof window !== 'undefined' && window.location.port === '5003') || (import.meta as any)?.env?.DEV;
+    if (isDev) return; // Skip confirmation in local dev
+
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       // Only show warning if we have videos loaded AND analysis hasn't been saved
       if (videoState && (videoState.video1File || videoState.video2File) && !analysisSaved) {

@@ -37,6 +37,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
   const lockedCropRef = useRef<CropCoordinates | null>(null); // The ACTUAL coordinates we use for recording
   
   const [recordedSegments, setRecordedSegments] = useState<any[]>([]);
+  const [previewSegment, setPreviewSegment] = useState<{ id: string; url: string; blob: Blob; duration: number } | null>(null);
   
   
   const { 
@@ -79,6 +80,8 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
   // Handle finished recording segments
   const onSegmentReady = useCallback((segment: { id: string; url: string; blob: Blob; duration: number }) => {
     setRecordedSegments(prev => [...prev, segment]);
+    // Open modal with the latest segment for immediate review
+    setPreviewSegment(segment);
   }, []);
 
   // Function to draw cropped area to canvas - create it directly each time
@@ -201,6 +204,16 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
     };
   }, []); // Empty deps - only run on unmount
 
+  // Close preview on ESC
+  useEffect(() => {
+    if (!previewSegment) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setPreviewSegment(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [previewSegment]);
+
   // Review modal handlers removed
 
   // No selection confirmation; center-crop applies via CropEditorPanel
@@ -296,6 +309,64 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
       </div>
 
       <UploadOverlay isUploading={isUploading} status={uploadStatus} />
+
+      {/* Centered preview modal for last recording */}
+      {previewSegment && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center"
+        >
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/70"
+            onClick={() => setPreviewSegment(null)}
+          />
+          {/* Modal content */}
+          <div className="relative bg-gray-900 border border-gray-700 rounded-lg shadow-xl max-w-4xl w-[90vw]">
+            <div className="flex items-center justify-between p-3 border-b border-gray-700">
+              <div className="text-sm text-gray-300">Preview • {previewSegment.duration}s</div>
+              <button
+                onClick={() => setPreviewSegment(null)}
+                className="text-gray-400 hover:text-white"
+                aria-label="Close preview"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-3">
+              <video
+                src={previewSegment.url}
+                controls
+                autoPlay
+                className="w-full max-h-[70vh] bg-black rounded"
+                style={{ objectFit: 'contain' }}
+              />
+            </div>
+            <div className="flex gap-2 p-3 border-t border-gray-700">
+              <button
+                onClick={() => {
+                  runUpload(previewSegment);
+                  setPreviewSegment(null);
+                }}
+                disabled={isUploading}
+                className={`px-3 py-1 ${isUploading ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'} text-white rounded transition-colors`}
+              >
+                {isUploading ? 'Uploading…' : 'Approve & Send to Player'}
+              </button>
+              <button
+                onClick={() => setPreviewSegment(null)}
+                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors"
+              >
+                Close
+              </button>
+              <div className="ml-auto flex items-center text-xs text-gray-400">
+                Tip: Click outside or press ESC to dismiss
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

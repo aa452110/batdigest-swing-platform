@@ -349,6 +349,10 @@ const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className
     return null;
   };
 
+  // Enable a loud visual overlay in local dev to validate exact cropping
+  // Debug overlay disabled
+  const showDebugOverlay = false;
+
   return (
     <div className={className}>
       <ViewModeToggle
@@ -372,68 +376,70 @@ const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className
           position: 'relative'
         }} 
         className="relative bg-black rounded-lg overflow-hidden">
-          {/* PINK OVERLAY FOR TESTING - COMMENTED OUT BUT KEPT FOR LATER USE
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'hotpink',
-            zIndex: 9999,
-            pointerEvents: 'none',
-            opacity: 0.7,
-            border: '50px solid lightgreen',
-            boxSizing: 'border-box'
-          }}>
-            <div style={{
-              position: 'absolute',
-              top: '50%',
-              left: 0,
-              right: 0,
-              height: '4px',
-              backgroundColor: 'black',
-              transform: 'translateY(-50%)'
-            }}></div>
+          {showDebugOverlay && (
             <div style={{
               position: 'absolute',
               top: 0,
+              left: 0,
+              right: 0,
               bottom: 0,
-              left: '50%',
-              width: '4px',
-              backgroundColor: 'black',
-              transform: 'translateX(-50%)'
-            }}></div>
-            
-            <div style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              width: '60px',
-              height: '60px',
-              backgroundColor: 'red',
-              borderRadius: '50%',
-              transform: 'translate(-50%, -50%)',
-              zIndex: 10000
-            }}></div>
-            
-            <div style={{
-              color: 'white',
-              fontSize: '48px',
-              fontWeight: 'bold',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-              textShadow: '2px 2px 4px black'
+              backgroundColor: 'rgba(255,105,180,0.7)', // hotpink with alpha
+              zIndex: 9999,
+              pointerEvents: 'none',
+              border: '50px solid lightgreen',
+              boxSizing: 'border-box'
             }}>
-              <div>VIDEO CONTAINER ACTUAL</div>
-              <div style={{ fontSize: '24px' }}>1080x608</div>
-              <div style={{ fontSize: '18px', marginTop: '10px' }}>Top edge should align with recording</div>
+              {/* Crosshairs */}
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: 0,
+                right: 0,
+                height: '4px',
+                backgroundColor: 'black',
+                transform: 'translateY(-50%)'
+              }} />
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                bottom: 0,
+                left: '50%',
+                width: '4px',
+                backgroundColor: 'black',
+                transform: 'translateX(-50%)'
+              }} />
+
+              {/* Center dot */}
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                width: '60px',
+                height: '60px',
+                backgroundColor: 'red',
+                borderRadius: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 10000
+              }} />
+
+              {/* Labels */}
+              <div style={{
+                color: 'white',
+                fontSize: '32px',
+                fontWeight: 'bold',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100%',
+                textShadow: '2px 2px 4px black'
+              }}>
+                <div>VIDEO CONTAINER ACTUAL</div>
+                <div style={{ fontSize: '18px' }}>1080 x 608</div>
+                <div style={{ fontSize: '14px', marginTop: '10px' }}>Top edge should align with recording</div>
+              </div>
             </div>
-          </div>
-          */}
+          )}
           {viewMode === 'video1' && video1File && (
             <VideoDisplay
               ref={viewport1Ref}
