@@ -46,30 +46,70 @@ export function useRecordingEngine(params: Params) {
   const pausedDurationRef = useRef<number>(0);
 
   const startRecording = useCallback(async () => {
+    // REMOVED LOG - console.log('[RecordingEngine] startRecording called');
     try {
       setRecordingWarning('');
       if (!displayStreamRef.current) {
+        console.log('[RecordingEngine] No existing display stream, need to capture...');
         let displayStream: MediaStream | null = null;
         if (getCaptureStream) {
-          try { displayStream = await getCaptureStream(); } catch {}
+          try { 
+            console.log('[RecordingEngine] Calling getCaptureStream...');
+            displayStream = await getCaptureStream(); 
+            console.log('[RecordingEngine] getCaptureStream returned:', displayStream ? 'MediaStream' : 'null');
+          } catch (e) {
+            console.error('[RecordingEngine] getCaptureStream threw:', e);
+          }
         }
         if (!displayStream) {
+          console.error('[RecordingEngine] Failed to get display stream!');
           setRecordingWarning('Region Capture is required. Select "This Tab" and ensure Chrome supports Region Capture.');
           return; // Do not fall back to generic screen capture
         }
         displayStreamRef.current = displayStream;
+        console.log('[RecordingEngine] Display stream set successfully');
+      } else {
+        console.log('[RecordingEngine] Using existing display stream');
       }
       const video = videoRef.current;
       if (!video) throw new Error('Video element not found');
+      
+      console.log('[RecordingEngine] Setting video srcObject...');
       video.srcObject = displayStreamRef.current as MediaStream;
-      await new Promise((resolve) => { video.onloadedmetadata = () => resolve(true); });
+      
+      console.log('[RecordingEngine] Waiting for metadata...');
+      await new Promise((resolve) => { 
+        video.onloadedmetadata = () => {
+          console.log('[RecordingEngine] Metadata loaded, video dimensions:', video.videoWidth, 'x', video.videoHeight);
+          resolve(true);
+        };
+      });
+      
+      console.log('[RecordingEngine] Playing video...');
       await video.play();
+      
+      // Verify video is actually ready
+      if (video.readyState < 2) {
+        console.error('[RecordingEngine] Video not ready after play, readyState:', video.readyState);
+        throw new Error('Video element not ready for playback');
+      }
+      
+      console.log('[RecordingEngine] Video ready, readyState:', video.readyState);
 
       const canvas = canvasRef.current;
       if (!canvas) throw new Error('Canvas not initialized');
-      canvas.width = 1280;
-      canvas.height = 720;
-
+      
+      // Get actual video dimensions from the stream
+      const videoTrack = displayStreamRef.current?.getVideoTracks()[0];
+      const settings = videoTrack?.getSettings() as any;
+      
+      // Set a temporary canvas size so captureStream works
+      // drawFrame will resize it to the actual crop dimensions on first frame
+      if (canvas.width === 0) canvas.width = 1;
+      if (canvas.height === 0) canvas.height = 1;
+      
+      // Only start drawing loop after we've confirmed video is ready
+      console.log('🎬 [Recording Engine] Video readyState=' + video.readyState + ', now starting drawing loop...');
       startDrawing();
 
       const canvasStream = canvas.captureStream(30);

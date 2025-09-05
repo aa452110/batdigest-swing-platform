@@ -1,12 +1,13 @@
 # CLAUDE.md - BatDigest Swing Analysis Coach Platform
 
-## Current Status (Aug 27, 2025)
-**WORKING:** Queue page successfully pulls pending video submissions from Cloudflare D1 database. Admin can view and analyze videos submitted from iOS app.
+## Current Status (Aug 28, 2025)
+**WORKING:** Multi-coach system with unique logins and coach-specific video queues. Coaches can sign up, get unique invite codes, and see only their players' submissions.
 
-**NEW (Aug 27, 2025):** 
-1. **Cloudflare Stream integration** for converting coach analysis videos from WebM to MP4 for iPhone compatibility
-2. **Video Review Interface** with 7-day hitting plan builder after recording
-3. **Production deployment** at https://swing.batdigest.com via Cloudflare Pages
+**NEW (Aug 28, 2025):**
+1. **Multi-Coach System** - Each coach has unique login and 6-character invite code
+2. **Coach-Specific Queues** - Videos filtered by coach invite code
+3. **Reference Video Management** - Coaches can manage their own reference videos (stored in localStorage)
+4. **Coach Authentication** - JWT-based auth system with email verification
 
 ## Live URLs
 - **Production Site:** https://swing.batdigest.com
@@ -18,211 +19,58 @@
 
 ---
 
-## CRITICAL CONFIGURATION
+## Multi-Coach System
 
-### API Endpoint (FIXED Aug 27, 2025)
-**IMPORTANT:** The queue page pulls video submissions from the iOS app's backend:
-```
-VITE_API_BASE=https://swing-platform.brianduryea.workers.dev
-```
-⚠️ **DO NOT USE:** `swing-analysis-api.brianduryea.workers.dev` - This endpoint has no `/api/submissions` route and will return 404.
+### Coach Registration & Authentication
+- **Signup**: `/coach/signup` - Creates account with email, password, name, organization
+- **Login**: `/coach/login` - Authenticates and redirects to `/coach/queue`
+- **Invite Codes**: Each coach gets a unique 6-character alphanumeric code (e.g., `7JMZJ6`)
+- **Test Coach**: 
+  - Email: `testcoach@example.com`
+  - Password: `TestPassword123!`
+  - Invite Code: `7JMZJ6`
 
-### Admin Access
-- **Routes:** 
-  - `/admin/queue` - View pending video submissions
-  - `/admin/analyzer` - Analyze selected video
-- **Password:** `coach500admin`
-- **Auth Storage:** sessionStorage (persists for browser session)
+### Video Submission Flow
+1. **Player enters coach code** in iOS app (optional field)
+2. **Video tagged with `coach_code`** in database
+3. **Coach sees only their videos** in queue (filtered by invite code)
+4. **Unassigned videos** (code `000000`) go to general pool
 
----
+### Database Schema Updates
 
-## Tech Stack
-
-- **Language:** TypeScript (strict)
-- **Framework:** React + Vite
-- **State:** Zustand (simple stores, no boilerplate)
-- **Styling:** Tailwind CSS (utility-first; minimal custom CSS)
-- **Drawing:** HTML Canvas (for video annotations)
-- **Media:** MediaRecorder, getUserMedia, getDisplayMedia, WebAudio
-- **Backend:** Cloudflare Workers + D1 Database + R2 Storage
-- **Video Storage:** Cloudflare R2 bucket `swing-videos`
-- **Database:** Cloudflare D1 `swing-platform-db`
-
----
-
-## Development
-
-### Commands
-```bash
-cd /Users/brianduryea/Coding_Projects/batdigest-swing-analysis-project/swing-analysis
-
-# Install dependencies
-npm install
-
-# Start dev server (default port 5173, or specify port)
-npm run dev -- --port 5003 --host
-
-# Build for production
-npm run build
-
-# Run tests
-npm run test
-
-# Lint/format
-npm run lint
-npm run format
+#### `coaches` table
+```sql
+{
+  id: INTEGER PRIMARY KEY,
+  email: TEXT UNIQUE,
+  password_hash: TEXT,
+  full_name: TEXT,
+  organization: TEXT,
+  invite_code: TEXT UNIQUE,  -- 6-character code like "7JMZJ6"
+  is_verified: INTEGER,       -- Email verification status
+  verification_token: TEXT,
+  subscription_tier: TEXT DEFAULT 'basic',
+  max_players: INTEGER DEFAULT 100,
+  created_at: DATETIME
+}
 ```
 
----
-
-## Production Deployment
-
-### How It Works
-- **Frontend:** React app built as static files, deployed to Cloudflare Pages
-- **Backend:** Cloudflare Worker API (already deployed at swing-platform.brianduryea.workers.dev)
-- **Database:** Cloudflare D1 (swing-platform-db)
-- **Video Storage:** Cloudflare R2 (swing-videos bucket) + Stream (for MP4 conversion)
-
-### Deployment Architecture
-```
-GitHub Repo (batdigest-swing-platform)
-    ↓ (auto-deploy on push)
-Cloudflare Pages (swing.batdigest.com)
-    ↓ (API calls)
-Cloudflare Worker (swing-platform.brianduryea.workers.dev)
-    ↓
-D1 Database + R2 Storage + Stream
-```
-
-### To Deploy Updates
-
-#### 1. Build for Production
-```bash
-cd /Users/brianduryea/Coding_Projects/batdigest-swing-analysis-project/swing-analysis
-
-# Build with production environment variables
-npx vite build --mode production
-```
-
-#### 2. Push to GitHub
-```bash
-cd dist
-git add .
-git commit -m "Your update message"
-git push
-```
-
-Cloudflare Pages will automatically deploy within ~1 minute!
-
-#### 3. Deploy Worker Updates (if needed)
-```bash
-cd /Users/brianduryea/Coding_Projects/batdigest-flask/workers/swing-platform
-CLOUDFLARE_API_TOKEN="PJvfE0dIRCqJ6-7k2x5uzIJUInJliBWAgrMjYQc0" wrangler deploy
-```
-
-### Initial Setup (Already Done)
-1. Built React app with `npx vite build --mode production`
-2. Created GitHub repo from dist folder:
-   ```bash
-   cd dist
-   git init
-   git add .
-   git commit -m "Initial deployment"
-   gh repo create batdigest-swing-platform --public --source=. --push
-   ```
-3. Connected to Cloudflare Pages:
-   - Framework preset: None
-   - Build command: (leave empty)
-   - Build output directory: `/`
-4. Added custom domain: swing.batdigest.com
-
-### Important Files
-- `.env.production` - Production environment variables (API endpoints)
-- `.env.local` - Local development environment
-- `dist/` - Built static files (this is what gets deployed)
-
-### Environment Setup
-Create `.env.local` in the `swing-analysis` folder:
-
-```env
-# CRITICAL: Use swing-platform, NOT swing-analysis-api
-VITE_API_BASE=https://swing-platform.brianduryea.workers.dev
-
-# Cloudflare Stream API Token (for WebM to MP4 conversion)
-# Note: This is stored as a secret in the Worker, not used directly in frontend
-STREAM_API_TOKEN=VX5-4N0JWM234saga2odPLv3rJJedBdca_X_shhp
-
-# Cloudflare Account ID (for Stream API calls)
-CF_ACCOUNT_ID=f791be9be6d12e1353b13e587d3eccd9
-
-# Cloudflare API Token (for Worker deployment)
-# Created: Aug 27, 2025 - Edit Cloudflare Workers template
-CLOUDFLARE_API_TOKEN=PJvfE0dIRCqJ6-7k2x5uzIJUInJliBWAgrMjYQc0
-
-# Supabase (if using auth - currently not implemented)
-VITE_SUPABASE_URL=https://xxxx.supabase.co
-VITE_SUPABASE_ANON_KEY=public-anon-key
-```
-
----
-
-## Current Implementation Status
-
-### ✅ Working Features
-1. **Admin Queue Page** (`/admin/queue`)
-   - Fetches pending submissions from Cloudflare D1
-   - Shows athlete name, video size, wait time, notes
-   - Displays submission stats (pending, analyzing, longest wait)
-   - "Analyze" button stores video info and navigates to analyzer
-
-2. **Video Submission Integration**
-   - Pulls from same D1 database as iOS app
-   - Uses same R2 bucket (`swing-videos`) for video storage
-   - Submission data includes:
-     - Athlete name, video size, submission ID
-     - User preferences (wants drills, bat advice, mechanics)
-     - Camera angle (always "front" now)
-     - Upload timestamp and notes
-
-3. **Video Streaming**
-   - Videos stream from: `https://swing-platform.brianduryea.workers.dev/api/video/stream/{submissionId}`
-   - No authentication required (public endpoint)
-
-### 🚧 In Progress / Needs Work
-1. **Analyzer Page** (`/admin/analyzer`)
-   - Basic video loading implemented
-   - Canvas overlay for annotations partially working
-   - Recording functionality needs testing
-
-2. **Analysis Export**
-   - ✅ WebM recording captures tab + mic
-   - ✅ Upload to Cloudflare Stream implemented
-   - ✅ Automatic transcode to MP4 via Stream
-   - ✅ Webhook for conversion completion
-
-3. **User Authentication**
-   - Currently using simple password protection
-   - Supabase integration scaffolded but not active
-
----
-
-## Database Schema (Cloudflare D1)
-
-### `video_submissions` table
+#### `video_submissions` table (updated)
 ```sql
 {
   id: INTEGER PRIMARY KEY,
   submission_id: TEXT UNIQUE,
   user_id: INTEGER,
-  r2_key: TEXT,           -- Path in R2: "videos/2025/{uuid}.mp4"
-  video_size: INTEGER,    -- Size in bytes
+  r2_key: TEXT,
+  video_size: INTEGER,
   athlete_name: TEXT,
-  camera_angle: TEXT,     -- Always "front" now
+  coach_code: TEXT DEFAULT '000000',  -- Links to coach's invite_code
+  camera_angle: TEXT,
   notes: TEXT,
   wants_bat_advice: INTEGER (0/1),
   wants_drills: INTEGER (0/1),
   wants_mechanics: INTEGER (0/1),
-  status: TEXT,          -- "pending", "analyzing", "completed"
+  status: TEXT,
   created_at: DATETIME,
   updated_at: DATETIME
 }
@@ -232,152 +80,246 @@ VITE_SUPABASE_ANON_KEY=public-anon-key
 
 ## API Endpoints (swing-platform Worker)
 
+### Coach Endpoints
+```
+POST /api/coach/signup
+Body: { email, password, fullName, organization }
+Returns: { success, coachId, message }
+
+POST /api/coach/login  
+Body: { email, password }
+Returns: { success, token, coach: { id, email, fullName, inviteCode } }
+
+GET /api/coach/submissions?coachCode=7JMZJ6
+Headers: Authorization: Bearer <token>
+Returns: { submissions: [...filtered by coach code] }
+```
+
+### Video Submission (updated)
+```
+POST /api/submission/create
+Body: { 
+  athleteName, 
+  coachCode,  // NEW: Optional coach code (defaults to '000000')
+  notes, 
+  ...other fields 
+}
+Returns: { success, submissionId, coachCode }
+```
+
 ### Get Submissions
 ```
-GET https://swing-platform.brianduryea.workers.dev/api/submissions
-GET https://swing-platform.brianduryea.workers.dev/api/submissions?status=pending
-```
-
-### Stream Video
-```
-GET https://swing-platform.brianduryea.workers.dev/api/video/stream/{submissionId}
-```
-
-### Update Status (needs implementation on Worker side)
-```
-PATCH https://swing-platform.brianduryea.workers.dev/api/submission/{submissionId}/status
-Body: { "status": "analyzing" | "completed" }
+GET /api/submissions?status=pending
+GET /api/video/stream/{submissionId}
 ```
 
 ---
 
-## Core Workflow
+## Routes & Access
 
-1. **Coach Login**
-   - Navigate to `/admin/queue`
-   - Enter password: `coach500admin`
+### Admin Routes (`/admin/*`)
+- `/admin/queue` - View ALL video submissions (legacy admin view)
+- `/admin/analyzer` - Analyze selected video
+- `/admin/resource-videos` - Manage reference videos
+- Password: `coach500admin`
 
-2. **View Queue**
-   - Page fetches from D1 database via Worker API
-   - Shows all pending submissions sorted by wait time
-   - Displays key info: athlete, video size, notes, wait time
-
-3. **Start Analysis**
-   - Click "Analyze →" on a submission
-   - Stores video URL and submission data in sessionStorage
-   - Navigates to `/admin/analyzer` (currently `/analyzer` route)
-
-4. **Analyze Video** (partially implemented)
-   - Load video from R2 via streaming endpoint
-   - Scrub frame-by-frame
-   - Add annotations (lines, arrows, boxes)
-   - Record voiceover while screen-capturing
-   - Export analysis video
-
-5. **Save Analysis** (not implemented)
-   - Upload WebM to R2
-   - Update submission status to "completed"
-   - Store analysis metadata
-   - Trigger notification to player
+### Coach Routes (`/coach/*`)
+- `/coach/signup` - Coach registration
+- `/coach/login` - Coach authentication
+- `/coach/queue` - Coach-specific video queue (filtered by invite code)
+- `/coach/analyzer` - Same analyzer as admin
 
 ---
 
-## Known Issues & TODOs
+## Reference Videos System
 
-### Issues
-1. ❌ Analyzer page video loading inconsistent
-2. ❌ Canvas annotations not persisting properly
-3. ❌ Recording feature needs Chrome permissions setup
-4. ❌ No analysis upload/save functionality
+Coaches can manage their own reference videos, stored in browser localStorage:
 
-### TODOs
-1. ✅ Implement analysis video upload (now using Cloudflare Stream)
-2. ✅ Add webhook for video transcoding (Stream handles MP4 conversion)
-3. Create player notification system
-4. Add analysis history/library view
-5. Implement proper user authentication
-6. ✅ Add submission status updates to D1 (added Stream fields)
+### Storage Structure
+```javascript
+localStorage.setItem('coachReferenceVideos', JSON.stringify([
+  { name: 'Pro Swing Example', url: 'blob://...' },
+  { name: 'Youth Mechanics', url: 'blob://...' }
+]));
+```
+
+### Features
+- Videos stored locally on coach's machine
+- Persists across sessions (until browser data cleared)
+- Each coach has their own set of reference videos
+- Fallback to default MLB player videos if none added
 
 ---
 
-## Testing Video Submissions
+## Development
 
-### Check Current Queue
+### Commands
 ```bash
-curl -s "https://swing-platform.brianduryea.workers.dev/api/submissions?status=pending" | python3 -m json.tool
+cd /Users/brianduryea/Coding_Projects/batdigest-swing-analysis-project/swing-analysis
+
+# Start dev server
+npm run dev -- --port 5003 --host
+
+# Build for production
+npm run build
+
+# Lint/format
+npm run lint
+npm run format
 ```
 
-### Database Commands (via Wrangler)
+### Deploy Worker Updates
 ```bash
-# View all submissions
-wrangler d1 execute swing-platform-db --remote \
-  --command="SELECT * FROM video_submissions WHERE status='pending'"
-
-# Update submission status
-wrangler d1 execute swing-platform-db --remote \
-  --command="UPDATE video_submissions SET status='analyzing' WHERE submission_id='...'"
+cd /Users/brianduryea/Coding_Projects/batdigest-flask/workers/swing-platform
+CLOUDFLARE_API_TOKEN="s7HlXK59KBt8bkquZxivssAwox7j7a38rng8EXdE" wrangler deploy
 ```
+
+### Deploy Frontend Updates
+```bash
+cd /Users/brianduryea/Coding_Projects/batdigest-swing-analysis-project/swing-analysis
+npx vite build --mode production
+cd dist
+git add .
+git commit -m "Update message"
+git push
+```
+
+---
+
+## Database Management
+
+### View Coaches
+```bash
+CLOUDFLARE_API_TOKEN="s7HlXK59KBt8bkquZxivssAwox7j7a38rng8EXdE" \
+wrangler d1 execute swing-platform-db --remote \
+--command="SELECT id, email, full_name, invite_code, is_verified FROM coaches"
+```
+
+### View Submissions by Coach
+```bash
+CLOUDFLARE_API_TOKEN="s7HlXK59KBt8bkquZxivssAwox7j7a38rng8EXdE" \
+wrangler d1 execute swing-platform-db --remote \
+--command="SELECT * FROM video_submissions WHERE coach_code='7JMZJ6'"
+```
+
+### Verify Coach Account (for testing)
+```bash
+CLOUDFLARE_API_TOKEN="s7HlXK59KBt8bkquZxivssAwox7j7a38rng8EXdE" \
+wrangler d1 execute swing-platform-db --remote \
+--command="UPDATE coaches SET is_verified=1 WHERE email='testcoach@example.com'"
+```
+
+---
+
+## Environment Setup
+
+Create `.env.local` in the `swing-analysis` folder:
+
+```env
+# API Endpoint
+VITE_API_BASE=https://swing-platform.brianduryea.workers.dev
+
+# Cloudflare Tokens (for deployment)
+CLOUDFLARE_API_TOKEN=s7HlXK59KBt8bkquZxivssAwox7j7a38rng8EXdE
+CF_ACCOUNT_ID=f791be9be6d12e1353b13e587d3eccd9
+
+# Stream API (for video conversion)
+STREAM_API_TOKEN=VX5-4N0JWM234saga2odPLv3rJJedBdca_X_shhp
+```
+
+---
+
+## Current Implementation Status
+
+### ✅ Completed Features
+1. **Multi-Coach System**
+   - Coach signup/login with unique invite codes
+   - Coach-specific video queues
+   - JWT authentication (basic implementation)
+   - Email verification system (ready, needs email service)
+
+2. **Video Submission with Coach Codes**
+   - Backend accepts `coachCode` field
+   - Validates 6-character alphanumeric format
+   - Defaults to '000000' for general pool
+   - Filters submissions by coach code
+
+3. **Reference Video Management**
+   - localStorage-based storage per coach
+   - Add/remove videos through UI
+   - Fallback to default videos
+
+4. **Video Analysis Features**
+   - Frame-by-frame scrubbing
+   - Canvas annotations (lines, arrows, boxes)
+   - Screen + mic recording
+   - WebM to MP4 conversion via Cloudflare Stream
+
+### 🚧 Needs Implementation
+1. **iOS App Updates**
+   - Add coach code input field on submission screen
+   - Include `coachCode` in API payload
+
+2. **Email Verification**
+   - Configure email service for verification links
+   - Currently coaches need manual verification
+
+3. **Coach Dashboard**
+   - Analytics on player submissions
+   - Subscription management
+   - Player roster management
 
 ---
 
 ## File Structure
 ```
 batdigest-swing-analysis-project/
-├── swing-analysis/          # React/Vite frontend app
+├── swing-analysis/          # React/Vite frontend
 │   ├── src/
-│   │   ├── app/            # Page components
-│   │   │   ├── NeedAnalysisPage.tsx    # Queue page
-│   │   │   └── LoadVideoPage.tsx       # Analyzer page
-│   │   ├── services/
-│   │   │   └── api.ts      # API client (MUST use swing-platform)
-│   │   └── components/
-│   │       └── AdminAuth.tsx           # Password protection
-│   ├── .env.local          # CRITICAL: Set correct API endpoint
-│   └── package.json
-├── cloudflare-backend/      # Worker code (if needed)
-└── CLAUDE.md               # This file
+│   │   ├── app/
+│   │   │   ├── CoachLoginPage.tsx
+│   │   │   ├── CoachQueuePage.tsx     # Coach-specific queue
+│   │   │   ├── CoachSignupPage.tsx
+│   │   │   ├── LoadVideoPage.tsx      # Video analyzer
+│   │   │   └── NeedAnalysisPage.tsx   # Admin queue (all videos)
+│   │   ├── modules/
+│   │   │   └── video/
+│   │   │       └── ReferenceVideos.tsx # Coach reference videos
+│   │   └── services/
+│   │       └── api.ts
+│   └── dist/                # Separate Git repo for deployment
+
+batdigest-flask/
+└── workers/
+    └── swing-platform/      # Cloudflare Worker API
+        ├── src/
+        │   └── index.js     # API endpoints
+        └── migrations/
+            └── add_coach_system.sql
 ```
 
 ---
 
-## Browser Requirements
-- **Chrome ≥122 on macOS**: Full support for recording
-- **Other browsers**: Limited support, no screen recording
-- **Mobile**: Not supported for coach interface
-
----
-
 ## Security Notes
-- Admin password (`coach500admin`) is hardcoded in frontend - NOT SECURE for production
-- Video URLs are public (no auth on streaming endpoint)
-- No rate limiting on API endpoints
-- Consider implementing proper auth before production
+- Coach passwords are hashed with bcrypt
+- JWT tokens for session management (basic implementation)
+- Email verification required for coach accounts
+- Video URLs are currently public (no auth on streaming)
+- Consider implementing:
+  - Token refresh mechanism
+  - Rate limiting
+  - Secure video streaming
 
 ---
 
-## Quick Start for Next Developer
+## Quick Start for Coaches
 
-1. **Check the queue is working:**
-   ```bash
-   cd swing-analysis
-   npm run dev -- --port 5003
-   # Navigate to http://localhost:5003/admin/queue
-   # Password: coach500admin
-   ```
+1. **Sign Up**: Navigate to `/coach/signup`
+2. **Get Invite Code**: Provided after signup (e.g., `7JMZJ6`)
+3. **Share with Players**: Players enter code in iOS app
+4. **Login**: `/coach/login` with email/password
+5. **View Queue**: See only your players' submissions
+6. **Analyze**: Click "Analyze" to review and annotate videos
+7. **Manage References**: Add your own reference videos at `/admin/resource-videos`
 
-2. **Verify API endpoint in `.env.local`:**
-   ```
-   VITE_API_BASE=https://swing-platform.brianduryea.workers.dev
-   ```
-
-3. **If queue is empty, check for submissions:**
-   ```bash
-   curl -s "https://swing-platform.brianduryea.workers.dev/api/submissions" | python3 -m json.tool
-   ```
-
-4. **Main files to check:**
-   - `/src/app/NeedAnalysisPage.tsx` - Queue implementation
-   - `/src/services/api.ts` - API client (MUST point to swing-platform)
-   - `/src/components/AdminAuth.tsx` - Admin password
-
-Remember: The iOS app submits videos to `swing-platform.brianduryea.workers.dev`, NOT `swing-analysis-api`. The queue page must use the same API to see the submissions.
+Remember: The iOS app needs to be updated to include a coach code input field for this system to fully work.

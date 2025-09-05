@@ -93,7 +93,7 @@ const AnnotationToolbar: React.FC = () => {
     };
   }, [setCurrentTool, setCurrentStyle, undo, redo, clearAnnotations]);
 
-  console.log('AnnotationToolbar rendering - Version 2.0 with PEN TOOL');
+  // REMOVED LOG - console.log('AnnotationToolbar rendering - Version 2.0 with PEN TOOL');
   
   const tools: { type: ToolType; icon: JSX.Element; label: string; shortcut: string; description: string }[] = [
     {
@@ -158,9 +158,9 @@ const AnnotationToolbar: React.FC = () => {
     },
   ];
   
-  console.log('Tools array:', tools);
-  console.log('Tools count:', tools.length);
-  console.log('Tool types:', tools.map(t => t.type));
+  // REMOVED LOG - console.log('Tools array:', tools);
+  // REMOVED LOG - console.log('Tools count:', tools.length);
+  // REMOVED LOG - console.log('Tool types:', tools.map(t => t.type));
 
   const colors = [
     { color: '#000000', name: 'Black', shortcut: 'B' },

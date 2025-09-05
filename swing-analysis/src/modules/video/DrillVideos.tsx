@@ -17,7 +17,7 @@ const DrillVideos: React.FC<DrillVideosProps> = ({ onSelectVideo }) => {
   useEffect(() => {
     // Clear any stored drill videos since blob URLs are invalid after refresh
     localStorage.removeItem('coachVideos');
-    console.log('Cleared stored drill video references - blob URLs do not persist between sessions');
+    // REMOVED LOG - console.log('Cleared stored drill video references - blob URLs do not persist between sessions');
     setDrillVideos([]);
   }, []);
 
@@ -78,18 +78,18 @@ const DrillVideos: React.FC<DrillVideosProps> = ({ onSelectVideo }) => {
       setLoadingVideo(video.name);
       
       // Use stored blob URL from localStorage
-      console.log(`Loading drill video from blob URL: ${video.url}`);
+      // REMOVED LOG - console.log(`Loading drill video from blob URL: ${video.url}`);
       const response = await fetch(video.url);
       if (!response.ok) {
         throw new Error(`Failed to load video from blob URL: ${response.status}`);
       }
       
       const blob = await response.blob();
-      console.log(`Video blob size: ${blob.size} bytes`);
+      // REMOVED LOG - console.log(`Video blob size: ${blob.size} bytes`);
       
       const file = new File([blob], `${video.name}.mp4`, { type: 'video/mp4' });
       onSelectVideo(file);
-      console.log(`Successfully loaded drill video: ${video.name}`);
+      // REMOVED LOG - console.log(`Successfully loaded drill video: ${video.name}`);
       
       setLoadingVideo(null);
     } catch (error) {
@@ -156,14 +156,8 @@ const DrillVideos: React.FC<DrillVideosProps> = ({ onSelectVideo }) => {
             </div>
           ))
         ) : (
-          <div className="text-xs text-gray-500 italic space-y-2">
+          <div className="text-xs text-gray-500 italic">
             <p>No drill videos added yet</p>
-            <button 
-              onClick={() => setShowAddModal(true)}
-              className="block w-full text-center px-3 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded transition-colors"
-            >
-              Add Drill Videos
-            </button>
           </div>
         )}
       </div>

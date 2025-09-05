@@ -120,17 +120,17 @@ const VideoViewport = forwardRef<VideoViewportRef, VideoViewportProps>(
     // Handle panning when zoomed
     const handleMouseMove = useCallback((e: React.MouseEvent) => {
       // Debug logging
-      console.log('VideoViewport handleMouseMove:', {
-        currentTool,
-        zoom,
-        buttons: e.buttons,
-        target: (e.target as HTMLElement).tagName,
-        currentTarget: (e.currentTarget as HTMLElement).tagName
-      });
+      // REMOVED LOG - console.log('VideoViewport handleMouseMove:', {
+      //   currentTool,
+      //   zoom,
+      //   buttons: e.buttons,
+      //   target: (e.target as HTMLElement).tagName,
+      //   currentTarget: (e.currentTarget as HTMLElement).tagName
+      // });
       
       // Skip panning if an annotation tool is active (not 'select')
       if (currentTool !== 'select') {
-        console.log('Skipping pan - annotation tool active:', currentTool);
+        // REMOVED LOG - console.log('Skipping pan - annotation tool active:', currentTool);
         return;
       }
       
@@ -189,12 +189,8 @@ const VideoViewport = forwardRef<VideoViewportRef, VideoViewportProps>(
           height: '100%'
         } : { 
           cursor: zoom > 1 && currentTool === 'select' ? 'move' : 'default',
-          width: '1280px',
-          height: '720px',
-          minWidth: '1280px',
-          maxWidth: '1280px',
-          minHeight: '720px',
-          maxHeight: '720px'
+          width: '100%',
+          height: '100%'
         }}
       >
         {/* Zoom indicator */}

@@ -359,15 +359,81 @@ const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className
         onVideo2Select={handleVideo2Select}
         onViewModeChange={handleViewModeChange}
       />
-      <div ref={containerRef} style={{ 
-        width: '1280px', 
-        height: '720px',
-        minWidth: '1280px',
-        maxWidth: '1280px', 
-        minHeight: '720px',
-        maxHeight: '720px',
-        flexShrink: 0
-      }} className="relative bg-black rounded-lg overflow-hidden">
+      <div ref={containerRef} 
+        id="video-container-actual" 
+        style={{ 
+          width: '1080px', 
+          height: '608px',  // Maintains 16:9 ratio (1080 * 9/16 = 607.5)
+          minWidth: '1080px',
+          maxWidth: '1080px', 
+          minHeight: '608px',
+          maxHeight: '608px',
+          flexShrink: 0,
+          position: 'relative'
+        }} 
+        className="relative bg-black rounded-lg overflow-hidden">
+          {/* PINK OVERLAY FOR TESTING - COMMENTED OUT BUT KEPT FOR LATER USE
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'hotpink',
+            zIndex: 9999,
+            pointerEvents: 'none',
+            opacity: 0.7,
+            border: '50px solid lightgreen',
+            boxSizing: 'border-box'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: 0,
+              right: 0,
+              height: '4px',
+              backgroundColor: 'black',
+              transform: 'translateY(-50%)'
+            }}></div>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              bottom: 0,
+              left: '50%',
+              width: '4px',
+              backgroundColor: 'black',
+              transform: 'translateX(-50%)'
+            }}></div>
+            
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              width: '60px',
+              height: '60px',
+              backgroundColor: 'red',
+              borderRadius: '50%',
+              transform: 'translate(-50%, -50%)',
+              zIndex: 10000
+            }}></div>
+            
+            <div style={{
+              color: 'white',
+              fontSize: '48px',
+              fontWeight: 'bold',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              textShadow: '2px 2px 4px black'
+            }}>
+              <div>VIDEO CONTAINER ACTUAL</div>
+              <div style={{ fontSize: '24px' }}>1080x608</div>
+              <div style={{ fontSize: '18px', marginTop: '10px' }}>Top edge should align with recording</div>
+            </div>
+          </div>
+          */}
           {viewMode === 'video1' && video1File && (
             <VideoDisplay
               ref={viewport1Ref}

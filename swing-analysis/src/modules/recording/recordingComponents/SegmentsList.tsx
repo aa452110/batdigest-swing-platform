@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export type RecordedSegment = {
   id: string;
@@ -15,14 +15,27 @@ type Props = {
 };
 
 const SegmentsList: React.FC<Props> = ({ segments, isUploading, uploadStatus, onApprove, onDelete }) => {
+  const [previewSegment, setPreviewSegment] = useState<RecordedSegment | null>(null);
+  
   if (!segments.length) return null;
+  
   return (
-    <div className="space-y-2 mt-3 pt-3 border-t border-gray-700">
-      <p className="text-xs text-gray-400">Recorded Segments:</p>
-      {segments.map((segment, index) => (
-        <div key={segment.id} className="bg-gray-700 p-2 rounded space-y-2">
-          <span className="text-xs text-white block">Recording {index + 1} ({segment.duration}s)</span>
-          <div className="flex gap-1">
+    <>
+      <div className="space-y-2 mt-3 pt-3 border-t border-gray-700">
+        <p className="text-xs text-gray-400">Recorded Segments:</p>
+        {segments.map((segment, index) => (
+          <div key={segment.id} className="bg-gray-700 p-2 rounded space-y-2">
+            <span className="text-xs text-white block">Recording {index + 1} ({segment.duration}s)</span>
+            
+            {/* Video Preview */}
+            <video
+              src={segment.url}
+              controls
+              className="w-full rounded bg-black"
+              style={{ maxHeight: '150px' }}
+            />
+            
+            <div className="flex gap-1">
             <button
               onClick={() => onApprove(segment)}
               disabled={isUploading}
@@ -53,7 +66,8 @@ const SegmentsList: React.FC<Props> = ({ segments, isUploading, uploadStatus, on
           )}
         </div>
       ))}
-    </div>
+      </div>
+    </>
   );
 };
 

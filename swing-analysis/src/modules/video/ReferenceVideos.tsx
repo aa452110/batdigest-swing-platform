@@ -29,7 +29,7 @@ const ReferenceVideos: React.FC<ReferenceVideosProps> = ({ onSelectVideo }) => {
     // Clear any stored reference videos since blob URLs are invalid after refresh
     localStorage.removeItem('coachReferenceVideos');
     localStorage.removeItem('coachVideos');
-    console.log('Cleared stored video references - blob URLs do not persist between sessions');
+    // REMOVED LOG - console.log('Cleared stored video references - blob URLs do not persist between sessions');
     setReferenceVideos([]);
     setHasLocalVideos(false);
   }, []);
@@ -101,7 +101,7 @@ const ReferenceVideos: React.FC<ReferenceVideosProps> = ({ onSelectVideo }) => {
       
       if (video.url) {
         // Use stored blob URL from localStorage
-        console.log(`Loading reference video from blob URL: ${video.url}`);
+        // REMOVED LOG - console.log(`Loading reference video from blob URL: ${video.url}`);
         const response = await fetch(video.url);
         if (!response.ok) {
           throw new Error(`Failed to load video from blob URL: ${response.status}`);
@@ -109,7 +109,7 @@ const ReferenceVideos: React.FC<ReferenceVideosProps> = ({ onSelectVideo }) => {
         blob = await response.blob();
       } else if (video.file) {
         // Use default videos from public folder
-        console.log(`Loading reference video: ${video.file} from /reference-videos/`);
+        // REMOVED LOG - console.log(`Loading reference video: ${video.file} from /reference-videos/`);
         const response = await fetch(`/reference-videos/${video.file}`);
         if (!response.ok) {
           throw new Error(`Failed to load video: ${response.status}`);
@@ -119,12 +119,12 @@ const ReferenceVideos: React.FC<ReferenceVideosProps> = ({ onSelectVideo }) => {
         throw new Error('No video source available');
       }
       
-      console.log(`Video blob size: ${blob.size} bytes`);
+      // REMOVED LOG - console.log(`Video blob size: ${blob.size} bytes`);
       
       const fileName = video.file || `${video.name}.mp4`;
       const file = new File([blob], fileName, { type: 'video/mp4' });
       onSelectVideo(file);
-      console.log(`Successfully loaded reference video: ${video.name}`);
+      // REMOVED LOG - console.log(`Successfully loaded reference video: ${video.name}`);
       
       setLoadingVideo(null);
     } catch (error) {
@@ -193,14 +193,8 @@ const ReferenceVideos: React.FC<ReferenceVideosProps> = ({ onSelectVideo }) => {
             ))}
           </>
         ) : (
-          <div className="text-xs text-gray-500 italic space-y-2">
+          <div className="text-xs text-gray-500 italic">
             <p>No reference videos added yet</p>
-            <button 
-              onClick={() => setShowAddModal(true)}
-              className="block w-full text-center px-3 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded transition-colors"
-            >
-              Add Reference Videos
-            </button>
           </div>
         )}
       </div>

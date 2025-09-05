@@ -169,7 +169,7 @@ const SimpleDrawingCanvas: React.FC<SimpleDrawingCanvasProps> = ({ videoElement 
       canvas.style.width = `${rect.width}px`;
       canvas.style.height = `${rect.height}px`;
       
-      console.log('Canvas resized to:', { width: rect.width, height: rect.height });
+      // SHUT UP - console.log('Canvas resized to:', { width: rect.width, height: rect.height });
       redraw();
     };
     
@@ -197,12 +197,12 @@ const SimpleDrawingCanvas: React.FC<SimpleDrawingCanvasProps> = ({ videoElement 
   }, [redraw, annotations, playback.currentTime]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    console.log('Canvas handleMouseDown:', {
-      currentTool,
-      clientX: e.clientX,
-      clientY: e.clientY,
-      target: (e.target as HTMLElement).tagName
-    });
+    // REMOVED LOG - console.log('Canvas handleMouseDown:', {
+    //   currentTool,
+    //   clientX: e.clientX,
+    //   clientY: e.clientY,
+    //   target: (e.target as HTMLElement).tagName
+    // });
     
     if (currentTool === 'select') return;
     

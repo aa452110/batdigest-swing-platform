@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ComparisonVideoPlayer from '../modules/video/ComparisonVideoPlayer';
 import SelectableRecorder from '../modules/recording/SelectableRecorder';
@@ -7,6 +7,7 @@ import DrillVideos from '../modules/video/DrillVideos';
 import VideoControlsSidebar from '../modules/video/VideoControlsSidebar';
 import VideoControlsBottom from '../modules/video/VideoControlsBottom';
 import AnnotationToolbar from '../modules/annot/AnnotationToolbar';
+import { CropCommunicator } from '../modules/recording/recordingFunctions/cropCommunication';
 
 const LoadVideoPage: React.FC = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const LoadVideoPage: React.FC = () => {
   const [submissionInfo, setSubmissionInfo] = useState<any>(null);
   const [analysisSaved, setAnalysisSaved] = useState(false);
   const [viewportWidth, setViewportWidth] = useState<number>(window.innerWidth);
+  const cropCommunicatorRef = useRef<CropCommunicator | null>(null);
 
   useEffect(() => {
     const onResize = () => setViewportWidth(window.innerWidth);
@@ -26,15 +28,37 @@ const LoadVideoPage: React.FC = () => {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Multi-breakpoint scaling for better responsive design
-  const centerScale = viewportWidth < 1350 ? 0.6 : 
-                      viewportWidth < 1500 ? 0.7 : 
-                      viewportWidth < 1800 ? 0.8 : 1;
+  // Start crop communication when video loads
+  useEffect(() => {
+    if (videoLoaded) {
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        const videoPlayerElement = document.getElementById('video-container-actual');
+        if (videoPlayerElement) {
+          if (!cropCommunicatorRef.current) {
+            // Use a fixed session ID so analyzer and recorder connect to same channel
+            cropCommunicatorRef.current = new CropCommunicator('analyzer-session');
+          }
+          cropCommunicatorRef.current.startSending(videoPlayerElement);
+          console.log('[LoadVideoPage] Started crop communication for video-container-actual');
+        } else {
+          console.log('[LoadVideoPage] video-container-actual not found yet');
+        }
+      }, 100);
+    }
+    
+    return () => {
+      if (cropCommunicatorRef.current) {
+        cropCommunicatorRef.current.stop();
+      }
+    };
+  }, [videoLoaded]);
+
+  // TEMPORARILY DISABLED - No scaling for testing
+  const centerScale = 1; // Always 100% scale
   
-  // Responsive vertical positioning
-  const topPosition = viewportWidth < 1350 ? '55%' :
-                      viewportWidth < 1500 ? '50%' :
-                      viewportWidth < 1800 ? '45%' : '40%';
+  // Move video up higher on the page (35% from top instead of 50%)
+  const topPosition = '35%';
   
   // Add warning for page refresh
   useEffect(() => {
@@ -53,7 +77,7 @@ const LoadVideoPage: React.FC = () => {
   
   // Memoize callbacks to prevent infinite loops
   const handleVideo1Change = useCallback((fn: (file: File) => void) => {
-    console.log('Received setVideo1 function from ComparisonVideoPlayer');
+    // REMOVED LOG - console.log('Received setVideo1 function from ComparisonVideoPlayer');
     setSetVideo1(() => fn);
   }, []);
   
@@ -78,29 +102,29 @@ const LoadVideoPage: React.FC = () => {
       try {
         const parsed = JSON.parse(selectedSubmission);
         setSubmissionInfo(parsed);
-        console.log('Parsed submission info:', parsed);
+        // REMOVED LOG - console.log('Parsed submission info:', parsed);
       } catch (e) {
         console.error('Failed to parse submission info:', e);
       }
     }
     
-    console.log('Queue video check:', {
-      selectedVideo,
-      selectedSubmission,
-      setVideo1Available: !!setVideo1
-    });
+    // REMOVED LOG - console.log('Queue video check:', {
+    //   selectedVideo,
+    //   selectedSubmission,
+    //   setVideo1Available: !!setVideo1
+    // });
     
-    // Log all sessionStorage keys for debugging
-    console.log('All sessionStorage keys:', Object.keys(sessionStorage));
-    for (let i = 0; i < sessionStorage.length; i++) {
-      const key = sessionStorage.key(i);
-      if (key) {
-        console.log(`sessionStorage['${key}']:`, sessionStorage.getItem(key));
-      }
-    }
+    // REMOVED LOG - Log all sessionStorage keys for debugging
+    // REMOVED LOG - console.log('All sessionStorage keys:', Object.keys(sessionStorage));
+    // REMOVED LOG - for (let i = 0; i < sessionStorage.length; i++) {
+    //   const key = sessionStorage.key(i);
+    //   if (key) {
+    //     console.log(`sessionStorage['${key}']:`, sessionStorage.getItem(key));
+    //   }
+    // }
     
     if (selectedVideo && setVideo1) {
-      console.log('Loading video from queue:', selectedVideo);
+      // REMOVED LOG - console.log('Loading video from queue:', selectedVideo);
       setVideoLoaded(true); // Mark as loaded to prevent re-runs
       setLoadingVideo(true);
       setLoadingProgress(0);
@@ -118,17 +142,17 @@ const LoadVideoPage: React.FC = () => {
       xhr.onload = () => {
         if (xhr.status === 200) {
           const blob = xhr.response;
-          console.log('Video blob loaded, size:', blob.size);
+          // REMOVED LOG - console.log('Video blob loaded, size:', blob.size);
           const file = new File([blob], selectedVideo.split('/').pop() || 'video.mov', {
             type: 'video/quicktime'
           });
-          console.log('Setting video1 with file:', file.name);
+          // REMOVED LOG - console.log('Setting video1 with file:', file.name);
           setVideo1(file);
           setLoadingVideo(false);
           setLoadingProgress(100);
           
           // DON'T clear session storage - we need it for the upload later!
-          console.log('Keeping submission data in sessionStorage for later upload');
+          // REMOVED LOG - console.log('Keeping submission data in sessionStorage for later upload');
         } else {
           console.error('Failed to load video:', xhr.status);
           setLoadingVideo(false);
@@ -161,13 +185,19 @@ const LoadVideoPage: React.FC = () => {
       justifyContent: 'center'
     }}>
       {/* Video player - responsive positioning */}
-      <div style={{
-        position: 'absolute',
-        left: '50%',
-        top: topPosition,
-        transform: 'translate(-50%, -50%)',
-      }}>
-        <div style={{ transform: `scale(${centerScale})`, transformOrigin: 'top center' }}>
+      <div 
+        id="video-player-wrapper"
+        style={{
+          position: 'absolute',
+          left: '50%',
+          top: topPosition,
+          transform: 'translate(-50%, -50%)',
+        }}
+      >
+        <div 
+          id="video-player-scaled"
+          style={{ transform: `scale(${centerScale})`, transformOrigin: 'top center' }}
+        >
           <ComparisonVideoPlayer 
             onVideo1Change={handleVideo1Change}
             onVideo2Change={handleVideo2Change}
@@ -304,14 +334,13 @@ const LoadVideoPage: React.FC = () => {
           {/* VIDEO 2 Header */}
           <div className="px-4">
             <h2 className="text-lg font-bold text-cyan-400 mb-2">ADD VIDEO 2</h2>
-            <p className="text-xs text-gray-400 mb-3">Load a reference or drill video for comparison</p>
           </div>
           
           <ReferenceVideos 
             onSelectVideo={(file) => {
-              console.log('ReferenceVideos onSelectVideo called, setVideo2:', !!setVideo2);
+              // REMOVED LOG - console.log('ReferenceVideos onSelectVideo called, setVideo2:', !!setVideo2);
               if (setVideo2) {
-                console.log('Setting video2 with file:', file.name);
+                // REMOVED LOG - console.log('Setting video2 with file:', file.name);
                 setVideo2(file);
               } else {
                 console.warn('setVideo2 is null - video comparison not ready yet');
@@ -327,13 +356,6 @@ const LoadVideoPage: React.FC = () => {
             }}
           />
           
-          {/* Persistence Note */}
-          <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-lg p-3 mt-4 mx-4">
-            <p className="text-xs text-yellow-600">
-              <strong>Note:</strong> Reference and drill videos do not persist between browser sessions. 
-              This feature is coming soon. For now, you'll need to add your local videos each time you use the analyzer.
-            </p>
-          </div>
         </div>
       </div>
       

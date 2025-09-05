@@ -26,6 +26,8 @@ import { AccountPage } from './app/AccountPage';
 import NeedAnalysisPage from './app/NeedAnalysisPage';
 import LoadVideoPage from './app/LoadVideoPage';
 import AdminDashboard from './app/AdminDashboard';
+import TestCapturePage from './app/TestCapturePage';
+import TestExtensionPage from './app/TestExtensionPage';
 
 // Auth components
 import { AdminAuth } from './components/AdminAuth';
@@ -60,6 +62,16 @@ function App() {
         <Route path="/admin/analyzer" element={
           <AdminAuth>
             <LoadVideoPage />
+          </AdminAuth>
+        } />
+        <Route path="/admin/test-capture" element={
+          <AdminAuth>
+            <TestCapturePage />
+          </AdminAuth>
+        } />
+        <Route path="/admin/test-extension" element={
+          <AdminAuth>
+            <TestExtensionPage />
           </AdminAuth>
         } />
         
