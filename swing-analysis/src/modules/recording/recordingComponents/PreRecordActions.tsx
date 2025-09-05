@@ -54,6 +54,11 @@ const PreRecordActions: React.FC<Props> = ({ hasAppliedCrop, micStatus, showMicT
         </>
       )}
       {/* Reset Record Area disabled with Region Capture */}
+      <div className="text-[11px] text-gray-400 mt-2">
+        Having trouble seeing "This Tab"? Try
+        {' '}<a href={typeof window !== 'undefined' ? window.location.href : '#'} target="_blank" rel="noopener noreferrer" className="underline">opening the analyzer in a new window</a>{' '}
+        and start recording there.
+      </div>
     </>
   );
 };

@@ -200,7 +200,11 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
                 showMicTest={showMicTest}
                 audioLevel={audioLevel}
                 onTestMic={testMicrophone}
-                onStart={startRecording}
+                onStart={() => {
+                  try { window.focus(); } catch {}
+                  // Call startRecording immediately after focus to preserve user activation
+                  startRecording();
+                }}
                 onResetArea={() => { /* disabled */ }}
                 onPopOut={() => {
                   try {
