@@ -12,6 +12,13 @@ dist
 dist-ssr
 *.local
 
+# Large local demo/reference videos (exclude from repo/CF Pages)
+src/assets/hitting-models/*.MP4
+src/assets/hitting-models/*.mp4
+src/assets/user_videos/*
+src/assets/**/*.mov
+src/assets/**/*.MOV
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
