@@ -18,7 +18,7 @@ const PLANS: Plan[] = [
     name: 'Starter',
     price: '$25',
     period: '/month',
-    features: ['2 analyses', 'Pro feedback', 'Progress tracking', 'iOS app', '≈ 5% the price of a new bat']
+    features: ['2 analyses', 'Pro feedback', 'Progress tracking', 'iOS app']
   },
   {
     id: 'performance',
