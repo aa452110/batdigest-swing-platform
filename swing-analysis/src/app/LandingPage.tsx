@@ -142,7 +142,8 @@ export function LandingPage() {
             <div>
               <h1 className="text-5xl font-black mb-4 leading-tight">The Mechanics, Not the Metal.</h1>
               <p className="text-2xl mb-3 text-gray-100">Turn your $150 bat into a $500 swing.</p>
-              <p className="text-lg mb-6 text-gray-200">Real coaches. Real feedback. Real results—right on your phone.</p>
+              <p className="text-lg mb-3 text-gray-200">Real coaches. Real feedback. Real results—right on your phone.</p>
+              <p className="text-lg mb-6 text-gray-200">We bring the platform and tech — you bring the expertise.</p>
 
               {/* Player/Coach toggle for messaging */}
               <div className="inline-flex items-center rounded-full bg-white/10 p-1 mb-6">
@@ -372,7 +373,8 @@ export function LandingPage() {
       <section className="py-20 bg-gradient-to-br from-slate-900 via-teal-800 to-teal-600 text-white">
         <div className="max-w-4xl mx-auto text-center px-4">
           <h2 className="text-4xl font-bold mb-6">The Mechanics, Not the Metal.</h2>
-          <p className="text-xl mb-8">A community where hitters get better and coaches share what works.</p>
+          <p className="text-xl mb-3">A community where hitters get better and coaches share what works.</p>
+          <p className="text-lg mb-8 text-cyan-100">We bring the platform and tech — you bring the expertise.</p>
           <div className="flex gap-4 justify-center flex-wrap">
             <a href="#pricing" className="inline-block bg-cyan-500 text-white px-10 py-5 rounded-lg font-bold text-xl hover:bg-cyan-600 transform hover:-translate-y-1 transition-all">Sign Up as Player</a>
             <Link to="/coach/signup" className="inline-block bg-white text-teal-800 px-10 py-5 rounded-lg font-bold text-xl hover:bg-gray-100 transform hover:-translate-y-1 transition-all">Join as Coach</Link>
