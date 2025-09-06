@@ -8,16 +8,94 @@ interface HowItWorksSectionProps {
 }
 
 const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ audience, setAudience }) => {
-  // Unified card renderer for consistent layout across toggles
-  const renderCards = (items: { title: string; subtitle?: string }[]) => (
-    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6 mb-8">
-      {items.map((it, idx) => (
-        <div className="text-center" key={idx}>
-          <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
-            {idx + 1}
+  // Mobile slider state for dots/active card
+  const mobileContainerRef = React.useRef<HTMLDivElement | null>(null);
+  const cardRefs = React.useRef<Array<HTMLDivElement | null>>([]);
+  const [activeIdx, setActiveIdx] = React.useState(0);
+
+  React.useEffect(() => {
+    const el = mobileContainerRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      // Determine the card whose center is closest to container center
+      const containerCenter = el.scrollLeft + el.clientWidth / 2;
+      let best = 0;
+      let bestDist = Infinity;
+      cardRefs.current.forEach((card, i) => {
+        if (!card) return;
+        const rectLeft = card.offsetLeft;
+        const rectCenter = rectLeft + card.clientWidth / 2;
+        const d = Math.abs(rectCenter - containerCenter);
+        if (d < bestDist) { bestDist = d; best = i; }
+      });
+      setActiveIdx(best);
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    // Initialize
+    onScroll();
+    return () => el.removeEventListener('scroll', onScroll as any);
+  }, [audience]);
+
+  // Step emojis
+  const playerEmoji = ['🖊', '📱', '📤', '🤴'];
+  const coachEmoji = ['🖊', '🧰', '🖥', '🏆'];
+
+  // Card renderers: mobile slider + desktop grid
+  const renderCardsMobile = (items: { title: string; subtitle?: string }[], emojiList: string[]) => (
+    <>
+      <div
+        ref={mobileContainerRef}
+        className="md:hidden w-full pl-4 pr-4 pb-2 overflow-x-auto flex flex-nowrap gap-4 snap-x snap-mandatory scroll-smooth mb-3"
+        style={{ WebkitOverflowScrolling: 'touch' as any, scrollPaddingLeft: '1rem', touchAction: 'pan-x' as any }}
+      >
+        {items.map((it, idx) => (
+          <div
+            key={idx}
+            ref={(el) => (cardRefs.current[idx] = el)}
+            className="shrink-0 w-[80%] h-72 snap-center bg-white rounded-2xl border border-gray-200 shadow-md p-5 flex flex-col items-center text-center justify-start"
+          >
+          <div className="h-1.5 w-full rounded mb-4 bg-gradient-to-r from-cyan-500 to-teal-600" />
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <div className="text-5xl mb-3" aria-hidden>
+              {emojiList[idx] || '✅'}
+            </div>
+            <span className="inline-flex items-center justify-center w-8 h-8 text-xs font-bold rounded-full bg-cyan-100 text-cyan-800 mb-2">
+              {idx + 1}
+            </span>
+            <div className="text-cyan-700 font-semibold text-lg mb-1">{it.title}</div>
+            {it.subtitle && <p className="text-sm text-gray-600 leading-relaxed">{it.subtitle}</p>}
           </div>
-          <h3 className="text-base font-bold mb-1">{it.title}</h3>
-          {it.subtitle && <p className="text-sm text-gray-600">{it.subtitle}</p>}
+          </div>
+        ))}
+      </div>
+      {/* Dots */}
+      <div className="md:hidden flex justify-center gap-2 mb-8">
+        {items.map((_, i) => (
+          <span
+            key={i}
+            className={`w-2 h-2 rounded-full ${i === activeIdx ? 'bg-cyan-600' : 'bg-gray-300'}`}
+          />
+        ))}
+      </div>
+    </>
+  );
+
+  const renderCardsDesktop = (items: { title: string; subtitle?: string }[], emojiList: string[]) => (
+    <div className="hidden md:grid grid-cols-4 gap-8 mb-8">
+      {items.map((it, idx) => (
+        <div
+          key={idx}
+          className="bg-white rounded-2xl border border-gray-200 shadow-md p-6 min-h-[260px] flex flex-col items-center text-center justify-start"
+        >
+          <div className="h-1.5 w-full rounded mb-4 bg-gradient-to-r from-cyan-500 to-teal-600" />
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <div className="text-4xl mb-3" aria-hidden>{emojiList[idx] || '🟦'}</div>
+            <span className="inline-flex items-center justify-center w-8 h-8 text-xs font-bold rounded-full bg-teal-100 text-teal-800 mb-2">
+              {idx + 1}
+            </span>
+            <div className="text-teal-700 font-semibold text-lg mb-1">{it.title}</div>
+            {it.subtitle && <p className="text-sm text-gray-600 leading-relaxed">{it.subtitle}</p>}
+          </div>
         </div>
       ))}
     </div>
@@ -31,16 +109,16 @@ const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ audience, setAudi
   ];
 
   const coachItems = [
-    { title: 'Sign up as coach', subtitle: '(Free)' },
-    { title: 'Build Your Team', subtitle: 'Add players with your code; get players from the portal' },
-    { title: 'Coach', subtitle: 'Make < 5 minute analysis videos with our world‑class interface' },
-    { title: 'See Real Results' },
+    { title: 'Sign Up', subtitle: '(Free)' },
+    { title: 'Build Your Team', subtitle: 'Add your players; get portal players.' },
+    { title: 'Coach', subtitle: 'Make analysis with our web‑based tools.' },
+    { title: 'See Results', subtitle: 'Players get feedback and a focus plan in their app.' },
   ];
 
   return (
-    <section className="py-12 bg-white" id="how-it-works">
+    <section className="py-16 bg-white" id="how-it-works">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-10">
           <h2 className="text-4xl font-bold text-gray-900">How It Works</h2>
           <div className="inline-flex items-center rounded-full bg-gray-100 p-1 self-start md:self-auto" role="tablist" aria-label="Audience toggle">
             <button
@@ -68,7 +146,12 @@ const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ audience, setAudi
           </div>
         </div>
 
-        {renderCards(audience === 'player' ? playerItems : coachItems)}
+        {audience === 'player'
+          ? renderCardsMobile(playerItems, playerEmoji)
+          : renderCardsMobile(coachItems, coachEmoji)}
+        {audience === 'player'
+          ? renderCardsDesktop(playerItems, playerEmoji)
+          : renderCardsDesktop(coachItems, coachEmoji)}
 
         {audience === 'player' && (
           <div className="bg-gray-50 rounded-xl p-5 max-w-3xl mx-auto text-center">

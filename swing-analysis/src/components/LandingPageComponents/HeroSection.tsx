@@ -64,7 +64,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ audience, setAudience }) => {
             )}
 
             <div className="flex flex-wrap gap-4 mb-8">
-              <a href="#pricing" className="bg-cyan-500 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-cyan-600 transform hover:-translate-y-1 transition-all">Start as Player</a>
+              <a href="#pricing" className="bg-cyan-500 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-cyan-600 transform hover:-translate-y-1 transition-all">Join as Player</a>
               <a href="/coach/signup" className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-white hover:text-teal-800 transform hover:-translate-y-1 transition-all">Join as Coach</a>
             </div>
           </div>

@@ -5,7 +5,6 @@ import WhySection from '../components/LandingPageComponents/WhySection';
 import DifferentiatorsSection from '../components/LandingPageComponents/DifferentiatorsSection';
 import HowItWorksSection from '../components/LandingPageComponents/HowItWorksSection';
 import LogoDivider from '../components/LandingPageComponents/LogoDivider';
-import TestimonialsSection from '../components/LandingPageComponents/TestimonialsSection';
 import PricingSection, { type Plan } from '../components/LandingPageComponents/PricingSection';
 import FinalCTA from '../components/LandingPageComponents/FinalCTA';
 
@@ -138,7 +137,7 @@ export function LandingPage() {
 
       
 
-      <WhySection />
+      <WhySection audience={audience as any} />
 
       {/* How It Works (modularized, includes combined player steps) */}
       <HowItWorksSection audience={audience as any} setAudience={setAudience as any} />
@@ -149,7 +148,6 @@ export function LandingPage() {
 
       
 
-      <TestimonialsSection />
 
       
 
