@@ -143,8 +143,7 @@ export function LandingPage() {
             <div>
               <h1 className="text-5xl font-black mb-4 leading-tight">The Mechanics, Not the Metal.</h1>
               <p className="text-2xl mb-3 text-gray-100">Turn your $150 bat into a $500 swing.</p>
-              <p className="text-lg mb-3 text-gray-200">Real coaches. Real feedback. Real results—right on your phone.</p>
-              <p className="text-lg mb-6 text-gray-200">We bring the platform and tech — you bring the expertise.</p>
+              <p className="text-lg mb-6 text-gray-200">Real coaches. Real feedback. Real results—right on your phone.</p>
 
               {/* Player/Coach toggle for messaging */}
               <div className="inline-flex items-center rounded-full bg-white/10 p-1 mb-6">
@@ -176,6 +175,7 @@ export function LandingPage() {
                 </ul>
               ) : (
                 <ul className="text-sm md:text-base space-y-2 mb-8 text-gray-100">
+                  <li className="flex gap-2 items-start"><span className="text-cyan-300">✓</span>We bring the platform, you bring the insight.</li>
                   <li className="flex gap-2 items-start"><span className="text-cyan-300">✓</span>Keep your roster. Coach them remotely in one place.</li>
                   <li className="flex gap-2 items-start"><span className="text-cyan-300">✓</span>Expand your reach without losing ownership of your players.</li>
                   <li className="flex gap-2 items-start"><span className="text-cyan-300">✓</span>Earn 90% after processing—no facility, no scheduling headaches.</li>
