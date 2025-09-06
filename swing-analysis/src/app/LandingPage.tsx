@@ -140,14 +140,10 @@ export function LandingPage() {
 
       <WhySection />
 
-      
-
-      <DifferentiatorsSection />
-
-      
-
       {/* How It Works (modularized, includes combined player steps) */}
       <HowItWorksSection audience={audience as any} setAudience={setAudience as any} />
+
+      <DifferentiatorsSection />
 
       
 

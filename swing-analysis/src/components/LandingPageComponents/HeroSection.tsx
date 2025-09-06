@@ -52,15 +52,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({ audience, setAudience }) => {
             {audience === 'player' ? (
               <ul className="text-sm md:text-base space-y-2 mb-8 text-gray-100">
                 <li className="flex gap-2 items-start"><span className="text-cyan-300">✓</span>Fix swing flaws with frame-by-frame breakdowns.</li>
-                <li className="flex gap-2 items-start"><span className="text-cyan-300">✓</span>Use your current coach or get matched with verified pros.</li>
+                <li className="flex gap-2 items-start"><span className="text-cyan-300">✓</span>Use your current coach or get matched with one.</li>
                 <li className="flex gap-2 items-start"><span className="text-cyan-300">✓</span>Personalized drills and progress tracking.</li>
               </ul>
             ) : (
               <ul className="text-sm md:text-base space-y-2 mb-8 text-gray-100">
                 <li className="flex gap-2 items-start"><span className="text-cyan-300">✓</span>We bring the platform, you bring the insight.</li>
                 <li className="flex gap-2 items-start"><span className="text-cyan-300">✓</span>Keep your roster. Coach them remotely in one place.</li>
-                <li className="flex gap-2 items-start"><span className="text-cyan-300">✓</span>Expand your reach without losing ownership of your players.</li>
-                <li className="flex gap-2 items-start"><span className="text-cyan-300">✓</span>Earn 90% after processing—no facility, no scheduling headaches.</li>
+                <li className="flex gap-2 items-start"><span className="text-cyan-300">✓</span>Expand your reach, keep up to 90%.</li>
               </ul>
             )}
 
@@ -84,4 +83,3 @@ const HeroSection: React.FC<HeroSectionProps> = ({ audience, setAudience }) => {
 };
 
 export default HeroSection;
-

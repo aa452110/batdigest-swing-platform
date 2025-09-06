@@ -11,8 +11,8 @@ const DifferentiatorsSection: React.FC = () => {
             <p>We’re a clubhouse, not a marketplace. Coaches keep their players. Players keep their coach.</p>
           </div>
           <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-            <h4 className="font-bold mb-2">Results, Not Dashboards</h4>
-            <p>No vanity analytics. Just clear fixes and targeted drills that move the needle.</p>
+            <h4 className="font-bold mb-2">Results, Not Dashboard</h4>
+            <p>No vanity analytics. No “AI” metrics or special devices that report information that isn’t useful. Just clear fixes and targeted drills that move the needle for your swing.</p>
           </div>
           <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
             <h4 className="font-bold mb-2">Bring Your Own Coach</h4>
@@ -25,4 +25,3 @@ const DifferentiatorsSection: React.FC = () => {
 };
 
 export default DifferentiatorsSection;
-

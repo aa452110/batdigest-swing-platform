@@ -32,9 +32,9 @@ const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ audience, setAudi
 
   const coachItems = [
     { title: 'Sign up as coach', subtitle: '(Free)' },
-    { title: 'Learn the Web Analyzer', subtitle: 'Quick familiarization' },
-    { title: 'Share Your Code', subtitle: 'Keep your roster; add new players' },
-    { title: 'Coach From Anywhere, Anytime' },
+    { title: 'Build Your Team', subtitle: 'Add players with your code; get players from the portal' },
+    { title: 'Coach', subtitle: 'Make < 5 minute analysis videos with our world‑class interface' },
+    { title: 'See Real Results' },
   ];
 
   return (
@@ -87,8 +87,9 @@ const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ audience, setAudi
                 <path d="M3 5a2 2 0 012-2h14a2 2 0 012 2v9a2 2 0 01-2 2h-6l-4 3v-3H5a2 2 0 01-2-2V5z"/>
               </svg>
               <div className="text-gray-700">
-                <p className="font-semibold">Coach from a desktop or good laptop.</p>
-                <p className="text-sm mt-1">Our easy-to-learn analyzer runs as a web app in your browser. You’ll want a decent desktop or solid laptop for the best experience.</p>
+                <p className="font-semibold">Coach on your terms.</p>
+                <p className="text-sm mt-1">Our easy‑to‑learn, web‑based analyzer sits in your browser to use at your convenience from a good laptop or desktop.</p>
+                <p className="text-sm mt-1">We offer free training to make your targeted feedback the most useful — even new coaches will help hitters get better.</p>
                 <p className="text-sm mt-2">Coaches earn up to 90%. More details after you sign up.</p>
               </div>
             </div>
