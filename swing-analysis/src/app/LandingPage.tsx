@@ -31,7 +31,7 @@ const PLANS = [
 
 export function LandingPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [audience, setAudience] = useState<'player' | 'coach'>('player');
+  const [audience, setAudience] = useState('player');
 
   return (
     <div className="min-h-screen bg-white">
@@ -206,7 +206,7 @@ export function LandingPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-center mb-8 text-gray-900">Why Swing Shop</h2>
           <ul className="grid md:grid-cols-2 gap-4 text-lg text-gray-700">
-            <li className="flex items-start gap-3"><span className="text-cyan-600 mt-1">✓</span> Bats don’t fix swing flaws.</li>
+            <li className="flex items-start gap-3"><span className="text-cyan-600 mt-1">✓</span> Bats don’t fix swing flaws—mechanics do.</li>
             <li className="flex items-start gap-3"><span className="text-cyan-600 mt-1">✓</span> Frame-by-frame breakdowns show exactly what to change.</li>
             <li className="flex items-start gap-3"><span className="text-cyan-600 mt-1">✓</span> Drills tailored to your swing. Track progress over time.</li>
             <li className="flex items-start gap-3"><span className="text-cyan-600 mt-1">✓</span> Use your current coach or get matched with verified coaches and D1 players.</li>
@@ -219,15 +219,15 @@ export function LandingPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <h3 className="text-3xl font-bold mb-4 text-gray-900">How We’re Different</h3>
           <div className="grid md:grid-cols-3 gap-6 text-gray-700">
-            <div className="bg-white p-6 rounded-xl border">
+            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
               <h4 className="font-bold mb-2">Coach-First, Player-Focused</h4>
               <p>We’re a clubhouse, not a marketplace. Coaches keep their players. Players keep their coach.</p>
             </div>
-            <div className="bg-white p-6 rounded-xl border">
+            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
               <h4 className="font-bold mb-2">Results, Not Dashboards</h4>
               <p>No vanity analytics. Just clear fixes and targeted drills that move the needle.</p>
             </div>
-            <div className="bg-white p-6 rounded-xl border">
+            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
               <h4 className="font-bold mb-2">Bring Your Own Coach</h4>
               <p>Already have a coach you trust? Add their code and keep working together remotely.</p>
             </div>
@@ -235,67 +235,51 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* How it Works (Players) */}
-      <section className="py-12 bg-white">
+      {/* How It Works — audience toggle */}
+      <section className="py-12 bg-white" id="how-it-works">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h3 className="text-3xl font-bold mb-6 text-gray-900">How It Works (Players)</h3>
-          <ol className="space-y-3 text-gray-700 text-lg list-decimal list-inside">
-            <li>Sign Up – Pick a plan</li>
-            <li>Get the iOS App – Android coming soon</li>
-            <li>Upload a Video – Chest-high, live swing</li>
-            <li>Get Results – Detailed feedback within 72 hours</li>
-          </ol>
-        </div>
-      </section>
-
-      {/* For Coaches */}
-      <section className="py-12 bg-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h3 className="text-3xl font-bold mb-4 text-gray-900">For Coaches</h3>
-          <ul className="space-y-2 text-gray-700 text-lg">
-            <li>Keep your roster. Add new players on your terms.</li>
-            <li>Coach anywhere, any time—no facility needed.</li>
-            <li>Earn 90% of subscription fees*</li>
-          </ul>
-          <p className="text-sm text-gray-500 mt-2">*After payment processing; when all player videos are analyzed during the period.</p>
-          <div className="mt-4">
-            <Link to="/coach/signup" className="inline-block bg-cyan-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-cyan-600">Join as Coach →</Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Problem/Solution (trimmed, same spirit) */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-center mb-16 text-gray-900">The Truth About Bat Performance</h2>
-
-          <div className="grid md:grid-cols-2 gap-12">
-            <div className="bg-red-50 p-8 rounded-xl border-2 border-red-200">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">✗</div>
-                <h3 className="text-2xl font-bold text-red-900">The Problem</h3>
-              </div>
-              <ul className="space-y-4">
-                <li className="flex items-start gap-3"><span className="w-2 h-2 bg-red-400 rounded-full mt-2 flex-shrink-0"></span><span className="text-gray-700">Parents drop $500+ on bats chasing quick fixes.</span></li>
-                <li className="flex items-start gap-3"><span className="w-2 h-2 bg-red-400 rounded-full mt-2 flex-shrink-0"></span><span className="text-gray-700">Models change. Swing flaws don’t.</span></li>
-                <li className="flex items-start gap-3"><span className="w-2 h-2 bg-red-400 rounded-full mt-2 flex-shrink-0"></span><span className="text-gray-700">Gear gets blamed. Mechanicss get ignored.</span></li>
-              </ul>
-            </div>
-
-            <div className="bg-green-50 p-8 rounded-xl border-2 border-green-200">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">✓</div>
-                <h3 className="text-2xl font-bold text-green-900">The Solution</h3>
-              </div>
-              <ul className="space-y-4">
-                <li className="flex items-start gap-3"><span className="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></span><span className="text-gray-700">Real coaches and D1-level players break down your swing.</span></li>
-                <li className="flex items-start gap-3"><span className="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></span><span className="text-gray-700">Simple fixes and targeted drills—not generic tips.</span></li>
-                <li className="flex items-start gap-3"><span className="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></span><span className="text-gray-700">Track progress across multiple analyses over time.</span></li>
-              </ul>
+          <div className="flex items-center justify-between gap-4 mb-6">
+            <h3 className="text-3xl font-bold text-gray-900">How It Works</h3>
+            <div className="inline-flex items-center rounded-full bg-gray-100 p-1">
+              <button
+                type="button"
+                onClick={() => setAudience('player')}
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition ${audience === 'player' ? 'bg-white text-teal-800 shadow' : 'text-gray-700'}`}
+              >
+                Players
+              </button>
+              <button
+                type="button"
+                onClick={() => setAudience('coach')}
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition ${audience === 'coach' ? 'bg-white text-teal-800 shadow' : 'text-gray-700'}`}
+              >
+                Coaches
+              </button>
             </div>
           </div>
+
+          {audience === 'player' ? (
+            <ol className="space-y-3 text-gray-700 text-lg list-decimal list-inside">
+              <li>Sign Up — Pick a plan.</li>
+              <li>Get the iOS App — Android coming soon.</li>
+              <li>Upload a Video — Chest-high, live swing.</li>
+              <li>Get Results — Detailed feedback within 72 hours.</li>
+            </ol>
+          ) : (
+            <ol className="space-y-3 text-gray-700 text-lg list-decimal list-inside">
+              <li>Create Your Coach Profile — Set your focus areas.</li>
+              <li>Share Your Coach Code — Keep your roster; invite new players.</li>
+              <li>Receive Videos — Mark up swings; add notes and voiceovers.</li>
+              <li>Assign Drills — Targeted work players actually do.</li>
+              <li>Get Paid — Earn 90% after processing, automatically.</li>
+            </ol>
+          )}
         </div>
       </section>
+
+      
+
+      
 
       {/* Logo Divider */}
       <div className="py-8 bg-white flex justify-center">
