@@ -39,7 +39,7 @@ const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ audience, setAudi
 
   return (
     <section className="py-12 bg-white" id="how-it-works">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
           <h2 className="text-4xl font-bold text-gray-900">How It Works</h2>
           <div className="inline-flex items-center rounded-full bg-gray-100 p-1 self-start md:self-auto" role="tablist" aria-label="Audience toggle">
