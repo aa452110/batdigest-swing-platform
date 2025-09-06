@@ -47,4 +47,3 @@ const PricingSection: React.FC<{ plans: Plan[] }> = ({ plans }) => (
 );
 
 export default PricingSection;
-
