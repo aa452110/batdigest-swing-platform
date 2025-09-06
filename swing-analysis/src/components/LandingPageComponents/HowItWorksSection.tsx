@@ -10,7 +10,7 @@ interface HowItWorksSectionProps {
 const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ audience, setAudience }) => {
   // Unified card renderer for consistent layout across toggles
   const renderCards = (items: { title: string; subtitle?: string }[]) => (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-8">
+    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6 mb-8">
       {items.map((it, idx) => (
         <div className="text-center" key={idx}>
           <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
