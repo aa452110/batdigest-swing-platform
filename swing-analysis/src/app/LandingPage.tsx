@@ -8,11 +8,10 @@ const PLANS = [
     price: '$25',
     period: '/month',
     features: [
-      '2 analyses/month',
-      'Pro coach feedback',
-      'Frame-by-frame analysis',
+      '2 analyses',
+      'Pro feedback',
       'Progress tracking',
-      'iOS app access'
+      'iOS app'
     ]
   },
   {
@@ -22,10 +21,7 @@ const PLANS = [
     period: '/month',
     features: [
       '4 analyses/month',
-      'Pro coach feedback',
-      'Frame-by-frame analysis',
-      'Progress tracking',
-      'iOS app access'
+      'All features'
     ],
     popular: true
   },
@@ -35,12 +31,7 @@ const PLANS = [
     price: '$200',
     period: '/6 months',
     features: [
-      '4 analyses/month',
-      '24 total analyses',
-      'Pro coach feedback',
-      'Frame-by-frame analysis',
-      'Progress tracking',
-      'iOS app access',
+      '24 analyses total',
       'Save $40 vs monthly'
     ]
   }
@@ -169,23 +160,17 @@ export function LandingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-5xl font-black mb-4 leading-tight">
-                The Mechanic, Not the Metal
+                The Mechanics, not the Metal.
               </h1>
               <p className="text-2xl mb-8 text-gray-100">
-                Turn Your <s className="opacity-50">$500</s> $150 Bat Into a $500 Swing
+                Turn your $150 bat into a $500 swing.
               </p>
               <p className="text-lg mb-8 text-gray-200">
-                Connect with real coaches who fix swings, not sell equipment. 
-                Whether it's your current coach or one of our verified pros, 
-                get feedback directly in your app that actually improves your game.
+                Real coaches. Real feedback. Real improvement—right on your phone.
               </p>
               <div className="flex flex-wrap gap-4 mb-8">
-                <a href="#pricing" className="bg-cyan-500 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-cyan-600 transform hover:-translate-y-1 transition-all">
-                  Start as Player
-                </a>
-                <Link to="/coach/signup" className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-white hover:text-teal-800 transform hover:-translate-y-1 transition-all">
-                  Join as Coach
-                </Link>
+                <a href="#pricing" className="bg-cyan-500 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-cyan-600 transform hover:-translate-y-1 transition-all">Start as Player</a>
+                <Link to="/coach/signup" className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-white hover:text-teal-800 transform hover:-translate-y-1 transition-all">Join as Coach</Link>
               </div>
               <div className="flex flex-wrap gap-6 text-sm">
                 <div className="flex items-center gap-2">
@@ -210,12 +195,53 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Problem/Solution Section */}
+      {/* Why Swing Shop */}
+      <section className="py-16 bg-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl font-bold text-center mb-8 text-gray-900">Why Swing Shop</h2>
+          <ul className="grid md:grid-cols-2 gap-4 text-lg text-gray-700">
+            <li className="flex items-start gap-3"><span className="text-cyan-600 mt-1">✓</span> Bats don’t fix swing flaws—coaches do.</li>
+            <li className="flex items-start gap-3"><span className="text-cyan-600 mt-1">✓</span> Frame-by-frame breakdowns show exactly what to change.</li>
+            <li className="flex items-start gap-3"><span className="text-cyan-600 mt-1">✓</span> Drills tailored to your swing. Track progress over time.</li>
+            <li className="flex items-start gap-3"><span className="text-cyan-600 mt-1">✓</span> Use your current coach or get matched with verified coaches and D1 players.</li>
+          </ul>
+        </div>
+      </section>
+
+      {/* How it Works (Players) */}
+      <section className="py-12 bg-gray-50">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h3 className="text-3xl font-bold mb-6 text-gray-900">How it Works (Players)</h3>
+          <ol className="space-y-3 text-gray-700 text-lg list-decimal list-inside">
+            <li>Sign Up – Pick a plan</li>
+            <li>Get the iOS App – Android coming soon</li>
+            <li>Upload a Video – Chest-high, live swing</li>
+            <li>Get Results – Detailed feedback within 72 hours</li>
+          </ol>
+        </div>
+      </section>
+
+      {/* For Coaches */}
+      <section className="py-12 bg-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h3 className="text-3xl font-bold mb-4 text-gray-900">For Coaches (the short version)</h3>
+          <ul className="space-y-2 text-gray-700 text-lg">
+            <li>Share your expertise. Grow your reach. Get paid fairly.</li>
+            <li>Keep your players, add new ones—no facility needed</li>
+            <li>Coach on your schedule, from anywhere</li>
+            <li>Earn 90% of subscription fees*</li>
+          </ul>
+          <p className="text-sm text-gray-500 mt-2">*After payment processing, when all player videos are analyzed during the period</p>
+          <div className="mt-4">
+            <Link to="/coach/signup" className="inline-block bg-cyan-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-cyan-600">Join as Coach →</Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Problem/Solution Section (kept) */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-center mb-16 text-gray-900">
-            The Truth About Bat Performance
-          </h2>
+          <h2 className="text-4xl font-bold text-center mb-16 text-gray-900">The Truth About Bat Performance</h2>
           
           <div className="grid md:grid-cols-2 gap-12">
             <div className="bg-red-50 p-8 rounded-xl border-2 border-red-200">
@@ -404,20 +430,13 @@ export function LandingPage() {
           
           <div className="grid md:grid-cols-2 gap-8">
             <div className="bg-white p-8 rounded-xl shadow-lg">
-              <p className="text-gray-700 mb-6 italic">
-                "My son went from striking out twice a game to leading his team in batting average. 
-                The difference wasn't a new bat—it was understanding his swing mechanics."
-              </p>
-              <div className="font-bold">— Michael T., Parent</div>
+              <p className="text-gray-700 mb-6 italic">“We bought the $500 bat and maybe got 1%. Three months on Swing Shop, my kid doubled his average and hit more homers in one weekend than last year.”</p>
+              <div className="font-bold">— Jennifer R., Parent</div>
             </div>
             
             <div className="bg-white p-8 rounded-xl shadow-lg">
-              <p className="text-gray-700 mb-6 italic">
-                "We bought our kid the best bat and it might have improved his performance by 1%. 
-                In 3 months with Swing Shop he's almost doubled his Average and hit more home runs 
-                in the last weekend than he did all last year."
-              </p>
-              <div className="font-bold">— Jennifer R., Parent</div>
+              <p className="text-gray-700 mb-6 italic">“The difference wasn’t the bat—it was finally understanding the swing.”</p>
+              <div className="font-bold">— Michael T., Parent</div>
             </div>
           </div>
         </div>
@@ -476,30 +495,15 @@ export function LandingPage() {
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-br from-slate-900 via-teal-800 to-teal-600 text-white">
         <div className="max-w-4xl mx-auto text-center px-4">
-          <h2 className="text-4xl font-bold mb-6">
-            The Mechanic, Not the Metal
-          </h2>
+          <h2 className="text-4xl font-bold mb-6">The Mechanics, not the Metal.</h2>
           <p className="text-xl mb-8">
-            Whether you're a player looking to improve or a coach looking to get your guys the best feedback possible, 
-            Swing Shop is where development begins.
+            A community where hitters get better and coaches share what works.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
-            <a 
-              href="#pricing" 
-              className="inline-block bg-cyan-500 text-white px-10 py-5 rounded-lg font-bold text-xl hover:bg-cyan-600 transform hover:-translate-y-1 transition-all"
-            >
-              Sign Up as Player
-            </a>
-            <Link 
-              to="/coach/signup" 
-              className="inline-block bg-white text-teal-800 px-10 py-5 rounded-lg font-bold text-xl hover:bg-gray-100 transform hover:-translate-y-1 transition-all"
-            >
-              Join as Coach
-            </Link>
+            <a href="#pricing" className="inline-block bg-cyan-500 text-white px-10 py-5 rounded-lg font-bold text-xl hover:bg-cyan-600 transform hover:-translate-y-1 transition-all">Sign Up as Player</a>
+            <Link to="/coach/signup" className="inline-block bg-white text-teal-800 px-10 py-5 rounded-lg font-bold text-xl hover:bg-gray-100 transform hover:-translate-y-1 transition-all">Join as Coach</Link>
           </div>
-          <p className="mt-8 text-cyan-200">
-            Turn your <s className="opacity-50">$500</s> $150 bat into a $500 swing
-          </p>
+          <p className="mt-8 text-cyan-200">Turn your $150 bat into a $500 swing</p>
         </div>
       </section>
 
@@ -524,7 +528,7 @@ export function LandingPage() {
               <Link to="/login" className="text-gray-400 hover:text-white">Player Login</Link>
               <Link to="/coach/login" className="text-gray-400 hover:text-white">Coach Login</Link>
               <Link to="/account" className="text-gray-400 hover:text-white">My Account</Link>
-              <Link to="/privacy" className="text-gray-400 hover:text-white">Privacy Policy</Link>
+              <Link to="/privacy" className="text-gray-400 hover:text-white">Privacy</Link>
               <a href="mailto:support@batdigest.com" className="text-gray-400 hover:text-white">Support</a>
             </div>
           </div>

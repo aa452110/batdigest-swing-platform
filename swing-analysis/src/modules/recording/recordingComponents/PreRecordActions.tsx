@@ -43,8 +43,17 @@ const PreRecordActions: React.FC<Props> = ({ hasAppliedCrop, micStatus, showMicT
               <span className="text-xs text-yellow-400">Microphone error</span>
             </div>
           )}
-          <button onClick={onStart} className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2">
-            Start Recording
+          <button 
+            onClick={onStart} 
+            disabled={micStatus === 'idle'}
+            className={`w-full px-4 py-2 text-white rounded-lg transition-colors flex items-center justify-center gap-2 ${
+              micStatus === 'idle' 
+                ? 'bg-gray-500 cursor-not-allowed' 
+                : 'bg-red-600 hover:bg-red-700'
+            }`}
+            title={micStatus === 'idle' ? 'Please test your microphone first' : 'Start recording'}
+          >
+            {micStatus === 'idle' ? 'Test Mic First' : 'Start Recording'}
           </button>
           <div className="text-[11px] text-gray-400 mt-1">
             Using Chrome extension - click the extension icon when prompted
