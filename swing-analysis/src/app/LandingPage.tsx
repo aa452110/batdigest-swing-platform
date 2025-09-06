@@ -143,7 +143,7 @@ export function LandingPage() {
             <div>
               <h1 className="text-5xl font-black mb-4 leading-tight">The Mechanics, Not the Metal.</h1>
               <p className="text-2xl mb-3 text-gray-100">Turn your $150 bat into a $500 swing.</p>
-              <p className="text-lg mb-6 text-gray-200">Real coaches. Real feedback. Real results—right on your phone.</p>
+              <p className="text-lg mb-6 text-gray-200">Real coaches. Real feedback. Real results. Right on your phone.</p>
 
               {/* Player/Coach toggle for messaging */}
               <div className="inline-flex items-center rounded-full bg-white/10 p-1 mb-6">
