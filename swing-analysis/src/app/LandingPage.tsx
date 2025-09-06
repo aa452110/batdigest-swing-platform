@@ -149,8 +149,6 @@ export function LandingPage() {
 
       
 
-      <LogoDivider />
-
       <TestimonialsSection />
 
       
