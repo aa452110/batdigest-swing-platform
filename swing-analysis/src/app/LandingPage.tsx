@@ -18,14 +18,14 @@ const PLANS: Plan[] = [
     name: 'Starter',
     price: '$25',
     period: '/month',
-    features: ['2 analyses', 'Pro feedback', 'Progress tracking', 'iOS app']
+    features: ['2 analyses', 'Pro feedback', 'Progress tracking', 'iOS app', '≈ 1/20th the price of a new bat']
   },
   {
     id: 'performance',
     name: 'Performance',
     price: '$45',
     period: '/month',
-    features: ['4 analyses/month', 'All features in Starter', '2 athletes'],
+    features: ['4 analyses/month', 'All features in Starter', '2 athletes', '≈ 1/10th the price of a new bat'],
     popular: true
   },
   {
@@ -33,7 +33,7 @@ const PLANS: Plan[] = [
     name: '6-Month Performance',
     price: '$249',
     period: '/6 months',
-    features: ['24 analyses total', 'Save $40 vs monthly']
+    features: ['24 analyses total', 'Save $40 vs monthly', '≈ 1/2 the price of a new bat']
   }
 ];
 
