@@ -35,7 +35,6 @@ const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ audience, setAudi
     { title: 'Learn the Web Analyzer', subtitle: 'Quick familiarization' },
     { title: 'Share Your Code', subtitle: 'Keep your roster; add new players' },
     { title: 'Coach From Anywhere, Anytime' },
-    { title: 'Earn up to 90%', subtitle: 'Details after signup' },
   ];
 
   return (

@@ -23,15 +23,15 @@ const PLANS: Plan[] = [
   {
     id: 'performance',
     name: 'Performance',
-    price: '$40',
+    price: '$45',
     period: '/month',
-    features: ['4 analyses/month', 'All features'],
+    features: ['4 analyses/month', 'All features in Starter', '2 athletes'],
     popular: true
   },
   {
     id: 'sixmonth',
     name: '6-Month Performance',
-    price: '$200',
+    price: '$249',
     period: '/6 months',
     features: ['24 analyses total', 'Save $40 vs monthly']
   }
@@ -201,7 +201,8 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing */}
+      <PricingSection plans={PLANS} />
+
       <section className="py-20 bg-gray-100" id="pricing">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-center mb-4 text-gray-900">Start Improving Today</h2>
@@ -237,19 +238,6 @@ export function LandingPage() {
       </section>
 
       <FinalCTA />
-
-      <section className="py-20 bg-gradient-to-br from-slate-900 via-teal-800 to-teal-600 text-white">
-        <div className="max-w-4xl mx-auto text-center px-4">
-          <h2 className="text-4xl font-bold mb-6">The Mechanics, Not the Metal.</h2>
-          <p className="text-xl mb-3">A community where hitters get better and coaches share what works.</p>
-          <p className="text-lg mb-8 text-cyan-100">We bring the platform and tech — you bring the expertise.</p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <a href="#pricing" className="inline-block bg-cyan-500 text-white px-10 py-5 rounded-lg font-bold text-xl hover:bg-cyan-600 transform hover:-translate-y-1 transition-all">Sign Up as Player</a>
-            <Link to="/coach/signup" className="inline-block bg-white text-teal-800 px-10 py-5 rounded-lg font-bold text-xl hover:bg-gray-100 transform hover:-translate-y-1 transition-all">Join as Coach</Link>
-          </div>
-          <p className="mt-8 text-cyan-200">It’s the body, not the bat.</p>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
