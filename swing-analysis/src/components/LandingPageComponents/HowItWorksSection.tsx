@@ -31,10 +31,10 @@ const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ audience, setAudi
   ];
 
   const coachItems = [
-    { title: 'Sign up as coach' },
+    { title: 'Sign up as coach', subtitle: '(Free)' },
     { title: 'Learn the Web Analyzer', subtitle: 'Quick familiarization' },
     { title: 'Share Your Code', subtitle: 'Keep your roster; add new players' },
-    { title: 'Make Better Hitters' },
+    { title: 'Coach From Anywhere, Anytime' },
     { title: 'Earn up to 90%', subtitle: 'Details after signup' },
   ];
 
@@ -78,6 +78,21 @@ const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ audience, setAudi
               <span className="text-base font-semibold text-gray-700">Currently Available for iPhone</span>
             </div>
             <p className="text-center text-gray-600">Android version coming soon.</p>
+          </div>
+        )}
+
+        {audience === 'coach' && (
+          <div className="bg-gray-50 rounded-xl p-6 max-w-4xl mx-auto">
+            <div className="flex items-start gap-3">
+              <svg className="w-6 h-6 text-gray-700 mt-1" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M3 5a2 2 0 012-2h14a2 2 0 012 2v9a2 2 0 01-2 2h-6l-4 3v-3H5a2 2 0 01-2-2V5z"/>
+              </svg>
+              <div className="text-gray-700">
+                <p className="font-semibold">Coach from a desktop or good laptop.</p>
+                <p className="text-sm mt-1">Our easy-to-learn analyzer runs as a web app in your browser. You’ll want a decent desktop or solid laptop for the best experience.</p>
+                <p className="text-sm mt-2">Coaches earn up to 90%. More details after you sign up.</p>
+              </div>
+            </div>
           </div>
         )}
       </div>
