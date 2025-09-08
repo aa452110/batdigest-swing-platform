@@ -8,8 +8,12 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
-dist-ssr
+# Track built output for Cloudflare Pages static deploy
+# (Pages is configured to publish from swing-analysis/dist)
+# If you switch Pages to build on deploy, you can re-ignore dist.
+# For now, do not ignore dist so all assets are published.
+# dist
+# dist-ssr
 *.local
 
 # Large local demo/reference videos (exclude from repo/CF Pages)
