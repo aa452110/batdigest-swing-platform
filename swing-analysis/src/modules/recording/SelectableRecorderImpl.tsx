@@ -339,9 +339,19 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
                 src={previewSegment.url}
                 controls
                 autoPlay
+                muted={false}
                 className="w-full max-h-[70vh] bg-black rounded"
                 style={{ objectFit: 'contain' }}
+                onLoadedMetadata={(e) => {
+                  const video = e.currentTarget;
+                  console.log('[PREVIEW] Video loaded - has audio:', (video as any).webkitAudioDecodedByteCount > 0 || (video as any).mozHasAudio);
+                  video.volume = 1.0;
+                  video.muted = false;
+                }}
               />
+              <div className="mt-2 bg-yellow-900 p-2 rounded text-sm">
+                ⚠️ If no audio: Click video, then unmute using controls. Chrome may auto-mute.
+              </div>
             </div>
             <div className="flex gap-2 p-3 border-t border-gray-700">
               <button

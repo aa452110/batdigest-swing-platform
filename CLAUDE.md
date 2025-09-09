@@ -14,6 +14,96 @@
 - **API Endpoint:** https://swing-platform.brianduryea.workers.dev
 - **GitHub Repo:** https://github.com/aa452110/batdigest-swing-platform
 
+---
+
+## Frontend Deploy (Updated)
+
+There are two supported ways to deploy the frontend. Today we are using a static deploy to Cloudflare Pages pointed at the built `dist/` folder.
+
+Option A — Static deploy from `dist/` (current)
+- Cloudflare Pages project points to repo: `aa452110/batdigest-swing-platform`
+- Root directory: `swing-analysis/dist`
+- Build command: leave empty
+- Output directory: leave empty
+- Notes:
+  - We commit the built `dist/` artifacts for Static deploys.
+  - Large demo/reference videos are ignored and NOT in Git (see below).
+
+Option B — Build on Pages (alternative)
+- Root directory: `swing-analysis`
+- Build command: `npm run vite:build` (not `npm run build`)
+- Output directory: `dist`
+- Notes:
+  - The `npm run build` script runs `tsc` and fails on strict/unused checks; prefer `vite:build` for Pages.
+
+Redirects (SPA)
+- Use `_redirects` with:
+  - `/index.html /index.html 200`
+  - `/* /index.html 200`
+
+Large assets policy (Updated)
+- We ignore large local media to avoid the 25 MiB Pages limit:
+  - `swing-analysis/src/assets/hitting-models/*.MP4`
+  - `swing-analysis/src/assets/user_videos/*`
+  - `swing-analysis/src/assets/**/*.mov`
+
+---
+
+## Frontend Structure (Updated)
+
+`swing-analysis/src/components/LandingPageComponents/` contains modular sections used on the landing page:
+- `HeroSection.tsx`: headline, hero toggle (Players/Coaches), top CTAs.
+- `WhySection.tsx`: left bullets + right rotating quotes (click dots or swipe on mobile). Accepts `audience` prop.
+- `HowItWorksSection.tsx`: mobile slider (snap + dots) and desktop 4‑card grid. Portrait cards with emoji, number badge, title, and concise subtitle.
+- `DifferentiatorsSection.tsx`: three cards; order currently “Results, Not Dashboard” first.
+- `PricingSection.tsx`: plan cards fed from `PLANS` in `LandingPage.tsx`.
+- `FinalCTA.tsx`: bottom CTA section.
+
+Styling/UX conventions
+- Section headings unified to `text-4xl`; How It Works and Differentiators are left‑aligned; others centered as designed.
+- Alternating section backgrounds: `Why` (gray‑50) → `How It Works` (white) → `How We’re Different` (gray‑50) → `Pricing` (white).
+- Section widths align on desktop (max‑w‑5xl) for consistent left margins.
+
+Removed/Deprecated
+- The Testimonials section on the homepage was removed in favor of rotating quotes in `WhySection`.
+- The logo divider between sections was removed.
+
+---
+
+## Local Dev (Updated)
+
+Commands
+```bash
+cd Coding_Projects/batdigest-swing-analysis-project/swing-analysis
+npm run dev            # local dev server
+npm run vite:build     # build production assets into dist/
+```
+
+Dev toggles
+- Many debug overlays are disabled by default; we removed the old selection overlays and area preview.
+- The How It Works mobile slider implements `snap` and dots locally without extra deps.
+
+Push workflow (Static deploy mode)
+```bash
+cd swing-analysis
+npm run vite:build
+git add -A && git commit -m "feat: landing updates" && git push origin main
+# Cloudflare Pages (root = swing-analysis/dist) deploys the latest dist
+```
+
+---
+
+## Pricing Notes (UI content may evolve)
+
+Plans are defined in `swing-analysis/src/app/LandingPage.tsx` as `PLANS`. Current values (subject to product changes):
+- Starter: $25/month — bullets like “2 analyses, Pro feedback, Progress tracking, iOS app”.
+- Performance: $45/month — “4 analyses/month, All features in Starter, 2 athletes, ≈ 10% the price of a new bat”.
+- 6‑Month Performance: $249 — “24 analyses total, Save vs monthly, ≈ 50% the price of a new bat”.
+
+If product/marketing updates copy, update `PLANS` and the PricingSection will reflect it.
+
+---
+
 ## Purpose
 **Coach-only web app** for baseball swing analysis. Coaches load videos from submission queue, annotate (lines/arrows/boxes), scrub frame-by-frame while **recording voiceover**, create 7-day hitting plans, and export the session as a video for players. **Supported environment:** Chrome on macOS.
 

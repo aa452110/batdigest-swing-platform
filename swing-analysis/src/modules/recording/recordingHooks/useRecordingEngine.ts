@@ -116,43 +116,180 @@ export function useRecordingEngine(params: Params) {
       const combinedStream = new MediaStream();
       // Video from canvas compositor
       canvasStream.getVideoTracks().forEach((t) => combinedStream.addTrack(t));
-      // Add tab audio (if available from display capture)
-      try {
-        const tabAudioTracks = displayStreamRef.current?.getAudioTracks?.() || [];
-        tabAudioTracks.forEach((t) => combinedStream.addTrack(t));
-      } catch {}
+      console.log('[AUDIO DEBUG] Video tracks added:', canvasStream.getVideoTracks().length);
+
+      // Build EXACTLY ONE audio track using WebAudio mixdown
+      // - Mix tab audio (if any) + microphone into a single destination
+      // - Many players and Chrome's MediaRecorder behave poorly with multiple audio tracks
+      // - A single, mixed track avoids the "Duration: Infinity" and silent playback issues
+      let audioContext: AudioContext | null = null;
+      let mixedDestination: MediaStreamAudioDestinationNode | null = null;
+      let disconnectFns: Array<() => void> = [];
 
       try {
-        const audioStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
-        audioStreamRef.current = audioStream;
-        audioStream.getAudioTracks().forEach((t) => combinedStream.addTrack(t));
-        setMicStatus('active');
-        setupAudioMonitoring(audioStream);
+        // Request microphone first so we can monitor and include it in the mix
+        console.log('[AUDIO DEBUG] Requesting microphone...');
+        const micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+        audioStreamRef.current = micStream;
+        const micTrack = micStream.getAudioTracks()[0] || null;
+        console.log('[AUDIO DEBUG] Microphone tracks obtained:', micTrack ? 1 : 0);
+
+        // Prepare WebAudio graph
+        audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        mixedDestination = audioContext.createMediaStreamDestination();
+
+        // Helper to add a MediaStreamTrack to the mix
+        const addTrackToMix = (track: MediaStreamTrack, label: string) => {
+          if (!audioContext || !mixedDestination) return;
+          const stream = new MediaStream([track]);
+          const source = audioContext.createMediaStreamSource(stream);
+          const gain = audioContext.createGain();
+          gain.gain.value = 1.0;
+          source.connect(gain).connect(mixedDestination);
+          disconnectFns.push(() => {
+            try { source.disconnect(); } catch {}
+            try { gain.disconnect(); } catch {}
+          });
+          console.log('[AUDIO DEBUG] Added source to mix:', label, track.label);
+        };
+
+        // Add tab audio if available from the display capture
+        let tabAudioTrack: MediaStreamTrack | null = null;
+        try {
+          const tabAudioTracks = displayStreamRef.current?.getAudioTracks?.() || [];
+          console.log('[AUDIO DEBUG] Tab audio tracks available:', tabAudioTracks.length);
+          tabAudioTrack = tabAudioTracks[0] || null;
+        } catch (e) {
+          console.log('[AUDIO DEBUG] Tab audio inspection error:', e);
+        }
+
+        if (tabAudioTrack) addTrackToMix(tabAudioTrack, 'tab');
+        if (micTrack) addTrackToMix(micTrack, 'mic');
+
+        if ((mixedDestination?.stream.getAudioTracks().length || 0) > 0) {
+          combinedStream.addTrack(mixedDestination!.stream.getAudioTracks()[0]);
+          setMicStatus('active');
+          setupAudioMonitoring(micStream);
+        } else {
+          console.warn('[AUDIO DEBUG] No audio tracks available for mix; recording will be silent');
+          setRecordingWarning('⚠️ No microphone detected - recording without audio');
+          setTimeout(() => setRecordingWarning(''), 5000);
+        }
       } catch (e) {
+        console.error('[AUDIO DEBUG] Audio mix setup error:', e);
         setMicStatus('denied');
         setRecordingWarning('⚠️ No microphone detected - recording without audio');
         setTimeout(() => setRecordingWarning(''), 5000);
       }
 
-      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm;codecs=vp8';
+      // Debug: Check what's actually in the combined stream
+      console.log('[AUDIO DEBUG] Combined stream summary:');
+      console.log('  - Video tracks:', combinedStream.getVideoTracks().length);
+      console.log('  - Audio tracks:', combinedStream.getAudioTracks().length);
+      combinedStream.getAudioTracks().forEach((t, i) => {
+        console.log(`  - Audio track ${i}:`, t.label, 'enabled:', t.enabled, 'settings:', t.getSettings());
+      });
+
+      // Prefer formats that explicitly include an audio codec so microphone/tab audio is muxed
+      let mimeType = 'video/webm';
+      if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')) {
+        mimeType = 'video/webm;codecs=vp9,opus';
+        console.log('[AUDIO DEBUG] Using mimeType with opus audio:', mimeType);
+      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
+        mimeType = 'video/webm;codecs=vp8,opus';
+        console.log('[AUDIO DEBUG] Using mimeType with opus audio:', mimeType);
+      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
+        mimeType = 'video/webm;codecs=vp9';
+        console.log('[AUDIO DEBUG] WARNING: Using mimeType WITHOUT explicit audio codec:', mimeType);
+      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
+        mimeType = 'video/webm;codecs=vp8';
+        console.log('[AUDIO DEBUG] WARNING: Using mimeType WITHOUT explicit audio codec:', mimeType);
+      }
+      
+      console.log('[AUDIO DEBUG] Creating MediaRecorder with:');
+      console.log('  - Stream has', combinedStream.getAudioTracks().length, 'audio tracks');
+      console.log('  - Stream has', combinedStream.getVideoTracks().length, 'video tracks');
+      console.log('  - MimeType:', mimeType);
+      
       const rec = new MediaRecorder(combinedStream, { mimeType, videoBitsPerSecond: 6000000 });
       mediaRecorderRef.current = rec;
       recordedChunksRef.current = [];
+      
+      console.log('[AUDIO DEBUG] MediaRecorder created, state:', rec.state);
+      console.log('[AUDIO DEBUG] MediaRecorder audio tracks:', rec.stream.getAudioTracks().length);
 
-      rec.ondataavailable = (e) => { if (e.data.size > 0) recordedChunksRef.current.push(e.data); };
+      rec.ondataavailable = (e) => { 
+        if (e.data.size > 0) {
+          recordedChunksRef.current.push(e.data);
+          console.log('[AUDIO DEBUG] Data chunk received, size:', e.data.size);
+        }
+      };
       rec.onstop = () => {
-        const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+        console.log('[AUDIO DEBUG] Recording stopped, total chunks:', recordedChunksRef.current.length);
+        // Use the same mimeType we recorded with for the blob
+        const blob = new Blob(recordedChunksRef.current, { type: mimeType });
+        console.log('[AUDIO DEBUG] Final blob size:', blob.size, 'bytes, type:', mimeType);
+        
+        // Test if the blob has audio - create test video element
+        const testUrl = URL.createObjectURL(blob);
+        const testVideo = document.createElement('video');
+        testVideo.muted = false; // Ensure not muted
+        testVideo.volume = 0.5;
+        testVideo.src = testUrl;
+        
+        // Also create an audio element to double-check
+        const testAudio = document.createElement('audio');
+        testAudio.src = testUrl;
+        
+        testVideo.onloadedmetadata = () => {
+          console.log('[AUDIO DEBUG] Recording metadata:');
+          console.log('  - Duration:', testVideo.duration, 'seconds');
+          console.log('  - Video tracks:', testVideo.videoTracks?.length || 'unknown');
+          console.log('  - Audio tracks:', testVideo.audioTracks?.length || 'unknown');
+          
+          // Try multiple ways to detect audio
+          const hasAudioMoz = !!(testVideo as any).mozHasAudio;
+          const hasAudioWebkit = !!((testVideo as any).webkitAudioDecodedByteCount > 0);
+          const hasAudioTracks = !!(testVideo as any).audioTracks?.length > 0;
+          
+          console.log('  - Has audio (mozHasAudio):', hasAudioMoz);
+          console.log('  - Has audio (webkit):', hasAudioWebkit);
+          console.log('  - Has audio (tracks):', hasAudioTracks);
+          
+          // Try to play a bit to check audio
+          testVideo.currentTime = 1; // Skip ahead a bit
+          testVideo.play().then(() => {
+            console.log('[AUDIO DEBUG] Test playback started successfully');
+            setTimeout(() => {
+              const decodedBytes = (testVideo as any).webkitAudioDecodedByteCount;
+              console.log('[AUDIO DEBUG] Audio bytes decoded after play:', decodedBytes || 0);
+              testVideo.pause();
+            }, 500);
+          }).catch(e => {
+            console.log('[AUDIO DEBUG] Test playback failed:', e);
+          });
+        };
+        
+        testAudio.onloadedmetadata = () => {
+          console.log('[AUDIO DEBUG] Audio element loaded, duration:', testAudio.duration);
+        };
+        
         const url = URL.createObjectURL(blob);
         onSegmentReady({ id: Date.now().toString(), url, blob, duration: recordingDuration });
         stopDrawing();
         if (displayStreamRef.current) { displayStreamRef.current.getTracks().forEach((t) => t.stop()); displayStreamRef.current = null; }
         if (audioStreamRef.current) { audioStreamRef.current.getTracks().forEach((t) => t.stop()); audioStreamRef.current = null; }
+        // Tear down mix graph
+        try { disconnectFns.forEach(fn => fn()); } catch {}
+        try { mixedDestination?.disconnect(); } catch {}
+        try { audioContext?.close(); } catch {}
         if (videoRef.current) videoRef.current.srcObject = null;
       };
 
       displayStreamRef.current.getVideoTracks()[0].addEventListener('ended', () => stopRecording());
 
-      rec.start(1000);
+      // Use timeslice but request data on stop to ensure finalization
+      rec.start(1000); // Back to 1 second chunks
       setIsRecording(true);
       setIsPaused(false);
       recordingStartTimeRef.current = Date.now();
@@ -200,6 +337,10 @@ export function useRecordingEngine(params: Params) {
   const stopRecording = useCallback(() => {
     const rec = mediaRecorderRef.current;
     if (rec && rec.state !== 'inactive') {
+      // Request final data before stopping to ensure proper finalization
+      if (rec.state === 'recording') {
+        rec.requestData();
+      }
       rec.stop();
       setIsRecording(false);
       setIsPaused(false);

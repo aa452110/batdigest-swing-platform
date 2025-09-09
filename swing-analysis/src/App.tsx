@@ -28,6 +28,7 @@ import LoadVideoPage from './app/LoadVideoPage';
 import AdminDashboard from './app/AdminDashboard';
 import TestCapturePage from './app/TestCapturePage';
 import TestExtensionPage from './app/TestExtensionPage';
+import TestAudioPage from './app/TestAudioPage';
 
 // Auth components
 import { AdminAuth } from './components/AdminAuth';
@@ -72,6 +73,11 @@ function App() {
         <Route path="/admin/test-extension" element={
           <AdminAuth>
             <TestExtensionPage />
+          </AdminAuth>
+        } />
+        <Route path="/admin/test-audio" element={
+          <AdminAuth>
+            <TestAudioPage />
           </AdminAuth>
         } />
         

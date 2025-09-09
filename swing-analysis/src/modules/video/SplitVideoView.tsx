@@ -100,15 +100,16 @@ const SplitVideoView: React.FC<SplitVideoViewProps> = ({
 
   return (
     <>
-      <div style={{ 
-        width: '1280px', 
-        height: '720px',
-        minWidth: '1280px',
-        maxWidth: '1280px',
-        minHeight: '720px',
-        maxHeight: '720px',
-        position: 'relative'
-      }} className="bg-black rounded-lg flex gap-2 p-2" data-video-container="true">
+      <div
+        style={{
+          // Inherit size from parent container (ComparisonVideoPlayer)
+          width: '100%',
+          height: '100%',
+          position: 'relative',
+        }}
+        className="bg-black rounded-lg flex gap-2 p-2"
+        data-video-container="true"
+      >
         {/* Video 1 */}
         <div 
           className="flex-1 relative bg-gray-900 rounded overflow-hidden flex items-center justify-center"
@@ -178,7 +179,7 @@ const SplitVideoView: React.FC<SplitVideoViewProps> = ({
       </div>
       
       {/* Controls BELOW the video container */}
-      <div className="flex gap-2 mt-2" style={{ width: '1280px' }}>
+      <div className="flex gap-2 mt-2" style={{ width: '100%' }}>
         {/* Video 1 Controls */}
         <div className="flex-1 bg-gray-800 rounded p-1">
           <div className="flex items-center gap-1">
