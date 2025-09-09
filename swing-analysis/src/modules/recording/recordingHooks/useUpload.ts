@@ -15,17 +15,48 @@ export function useUpload(onAnalysisSaved?: () => void) {
       const submissionId = submission?.id || 'unknown'; // Fixed endpoint
       const fileName = `analysis-${submissionId}-${Date.now()}.webm`;
 
+      // Debug logging
+      console.log('[UPLOAD DEBUG] Starting upload with:', {
+        submissionId,
+        fileName,
+        duration: segment.duration,
+        blobSize: segment.blob.size,
+        submission: submission
+      });
+
+      const uploadEndpoint = '/api/analysis/upload-to-stream';
+      const requestBody = {
+        fileName,
+        contentType: 'video/webm',
+        submissionId,
+        duration: segment.duration,
+      };
+      
+      console.log('[UPLOAD DEBUG] Calling endpoint:', uploadEndpoint);
+      console.log('[UPLOAD DEBUG] Request body:', requestBody);
+
       // Call worker to create Stream direct-upload URL
-      const uploadResponse = await fetch('/api/analysis/upload-to-stream', {
+      const response = await fetch(uploadEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fileName,
-          contentType: 'video/webm',
-          submissionId,
-          duration: segment.duration,
-        }),
-      }).then((r) => r.json());
+        body: JSON.stringify(requestBody),
+      });
+      
+      console.log('[UPLOAD DEBUG] Response status:', response.status);
+      console.log('[UPLOAD DEBUG] Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      // Try to get response text first to see what we're actually getting
+      const responseText = await response.text();
+      console.log('[UPLOAD DEBUG] Response text:', responseText);
+      
+      let uploadResponse;
+      try {
+        uploadResponse = JSON.parse(responseText);
+      } catch (e) {
+        console.error('[UPLOAD DEBUG] Failed to parse response as JSON:', e);
+        console.error('[UPLOAD DEBUG] Raw response was:', responseText);
+        throw new Error(`Server returned non-JSON response: ${responseText.substring(0, 200)}`);
+      }
 
       const { uploadUrl } = uploadResponse;
       setUploadStatus('⏳ Uploading video... 0%');
