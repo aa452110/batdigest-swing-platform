@@ -135,12 +135,7 @@ const NeedAnalysisPage: React.FC = () => {
   };
 
   const handleAnalyze = async (submission: VideoSubmission) => {
-    // Try to update status to analyzing (Worker endpoint doesn't exist yet, so this will fail but that's OK)
-    try {
-      await api.updateSubmissionStatus(submission.submissionId, 'analyzing');
-    } catch (error) {
-      console.log('Status update failed (expected - endpoint not implemented):', error);
-    }
+    // Status update endpoint not implemented in worker yet - skip for now
     
     // Store the submission data to pass to analyzer
     console.log('Storing submission for analysis:', submission);
