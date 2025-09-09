@@ -12,7 +12,8 @@ export function useUpload(onAnalysisSaved?: () => void) {
 
       const submissionRaw = sessionStorage.getItem('selectedSubmission');
       const submission = submissionRaw ? JSON.parse(submissionRaw) : null;
-      const submissionId = submission?.id || 'unknown'; // Fixed endpoint
+      // Handle both formats: submission.submissionId (from CoachQueue) or submission.submission_id (from NeedAnalysis)
+      const submissionId = submission?.submissionId || submission?.submission_id || submission?.id || 'unknown';
       const fileName = `analysis-${submissionId}-${Date.now()}.webm`;
 
       // Debug logging
