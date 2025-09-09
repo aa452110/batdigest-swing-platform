@@ -12,11 +12,11 @@ export function useUpload(onAnalysisSaved?: () => void) {
 
       const submissionRaw = sessionStorage.getItem('selectedSubmission');
       const submission = submissionRaw ? JSON.parse(submissionRaw) : null;
-      const submissionId = submission?.id || 'unknown';
+      const submissionId = submission?.id || 'unknown'; // Fixed endpoint
       const fileName = `analysis-${submissionId}-${Date.now()}.webm`;
 
       // Call worker to create Stream direct-upload URL
-      const uploadResponse = await fetch('/api/stream-upload', {
+      const uploadResponse = await fetch('/api/analysis/upload-to-stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

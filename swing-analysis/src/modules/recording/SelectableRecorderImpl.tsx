@@ -310,20 +310,20 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
 
       <UploadOverlay isUploading={isUploading} status={uploadStatus} />
 
-      {/* Centered preview modal for last recording */}
+      {/* Top-positioned preview modal for last recording */}
       {previewSegment && (
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center"
+          className="fixed inset-0 z-50 flex items-start justify-center pt-8 overflow-y-auto"
         >
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/70"
             onClick={() => setPreviewSegment(null)}
           />
-          {/* Modal content */}
-          <div className="relative bg-gray-900 border border-gray-700 rounded-lg shadow-xl max-w-4xl w-[90vw]">
+          {/* Modal content - smaller and at top */}
+          <div className="relative bg-gray-900 border border-gray-700 rounded-lg shadow-xl max-w-3xl w-[85vw]">
             <div className="flex items-center justify-between p-3 border-b border-gray-700">
               <div className="text-sm text-gray-300">Preview • {previewSegment.duration}s</div>
               <button
@@ -340,7 +340,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
                 controls
                 autoPlay
                 muted={false}
-                className="w-full max-h-[70vh] bg-black rounded"
+                className="w-full max-h-[60vh] bg-black rounded"
                 style={{ objectFit: 'contain' }}
                 onLoadedMetadata={(e) => {
                   const video = e.currentTarget;

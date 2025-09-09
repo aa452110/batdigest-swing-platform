@@ -7,5 +7,12 @@ export default defineConfig({
   server: {
     port: 5003,
     host: true,
+    proxy: {
+      '/api': {
+        target: 'https://swing-platform.brianduryea.workers.dev',
+        changeOrigin: true,
+        secure: true,
+      }
+    }
   },
 });
