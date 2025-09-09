@@ -24,7 +24,7 @@ export function useUpload(onAnalysisSaved?: () => void) {
         submission: submission
       });
 
-      const uploadEndpoint = '/api/analysis/upload-to-stream';
+      const uploadEndpoint = 'https://swing-platform.brianduryea.workers.dev/api/analysis/upload-to-stream';
       const requestBody = {
         fileName,
         contentType: 'video/webm',
