@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { compressVideo, needsCompression, formatFileSize } from '../recordingFunctions/videoCompression';
+import { API_BASE } from '../../../services/api';
 
 export function useUpload(onAnalysisSaved?: () => void) {
   const [isUploading, setIsUploading] = useState(false);
@@ -74,7 +75,7 @@ export function useUpload(onAnalysisSaved?: () => void) {
         submission: submission
       });
 
-      const uploadEndpoint = 'https://swing-platform.brianduryea.workers.dev/api/analysis/upload-to-stream';
+      const uploadEndpoint = `${API_BASE}/api/analysis/upload-to-stream`;
       const requestBody = {
         fileName,
         contentType: 'video/webm',

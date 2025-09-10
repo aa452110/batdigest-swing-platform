@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CoachNavigation } from '../components/CoachNavigation';
 import { resolveAnalyzedDownloadUrl } from '../lib/video';
+import { API_BASE } from '../services/api';
 
 interface Submission {
   id: number;
@@ -52,7 +53,7 @@ export function CoachQueuePage() {
       console.log('Loading submissions for coach code:', coachCode);
       
       // Fetch submissions for this coach's code
-      const response = await fetch(`https://swing-platform.brianduryea.workers.dev/api/coach/submissions?coachCode=${coachCode}`, {
+      const response = await fetch(`${API_BASE}/api/coach/submissions?coachCode=${coachCode}`, {
         headers: {
           'Authorization': `Bearer ${coachToken}`
         }
@@ -104,7 +105,7 @@ export function CoachQueuePage() {
   const handleAnalyze = (submission: Submission) => {
     // Store submission data in session storage for analyzer
     sessionStorage.setItem('selectedVideo', 
-      `https://swing-platform.brianduryea.workers.dev/api/video/stream/${submission.r2Key}`
+      `${API_BASE}/api/video/stream/${submission.r2Key}`
     );
     sessionStorage.setItem('selectedSubmission', JSON.stringify({
       submissionId: submission.submissionId,
@@ -295,7 +296,7 @@ export function CoachQueuePage() {
                           {submission.status !== 'uploading' && submission.r2Key && (
                             <button
                               onClick={() => {
-                                const videoUrl = `https://swing-platform.brianduryea.workers.dev/api/video/stream/${submission.r2Key}`;
+                                const videoUrl = `${API_BASE}/api/video/stream/${submission.r2Key}`;
                                 const link = document.createElement('a');
                                 link.href = videoUrl;
                                 link.download = `${submission.athleteName}-${submission.submissionId}.mp4`;

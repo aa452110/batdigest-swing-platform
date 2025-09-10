@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { SwingShopHeader } from '../components/SwingShopHeader';
 
@@ -41,7 +42,7 @@ export default function AdminDashboard() {
 
   const loadUsers = async () => {
     try {
-      const response = await fetch('https://swing-platform.brianduryea.workers.dev/api/admin/users');
+      const response = await fetch(`${API_BASE}/api/admin/users`);
       const data = await response.json();
       setUsers(data.users);
       setStats(data.stats);
@@ -66,7 +67,7 @@ export default function AdminDashboard() {
     if (!editingUser) return;
 
     try {
-      await fetch('https://swing-platform.brianduryea.workers.dev/api/admin/user/update', {
+      await fetch(`${API_BASE}/api/admin/user/update`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -88,7 +89,7 @@ export default function AdminDashboard() {
     if (!confirm('Resend welcome email to this user?')) return;
 
     try {
-      await fetch('https://swing-platform.brianduryea.workers.dev/api/admin/resend-welcome', {
+      await fetch(`${API_BASE}/api/admin/resend-welcome`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId })
@@ -103,7 +104,7 @@ export default function AdminDashboard() {
     if (!confirm(`Delete user ${email}?\n\nThis will permanently remove the user and all their data. Are you sure?`)) return;
 
     try {
-      const response = await fetch('https://swing-platform.brianduryea.workers.dev/api/admin/user/delete', {
+      const response = await fetch(`${API_BASE}/api/admin/user/delete`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId })
@@ -124,7 +125,7 @@ export default function AdminDashboard() {
     if (!confirm(`Send password reset email to ${email}?`)) return;
 
     try {
-      const response = await fetch('https://swing-platform.brianduryea.workers.dev/api/admin/password-reset', {
+      const response = await fetch(`${API_BASE}/api/admin/password-reset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, email })

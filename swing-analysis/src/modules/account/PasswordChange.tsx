@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE } from '../../services/api';
 import { PasswordInput } from '../../components/PasswordInput';
 
 interface PasswordChangeProps {
@@ -35,7 +36,7 @@ export function PasswordChange({ token }: PasswordChangeProps) {
     setSuccess('');
 
     try {
-      const response = await fetch('https://swing-platform.brianduryea.workers.dev/api/user/password', {
+      const response = await fetch(`${API_BASE}/api/user/password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

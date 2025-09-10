@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE } from '../../services/api';
 import { useAuthStore } from '../../stores/authStore';
 
 interface AccountSettingsProps {
@@ -25,7 +26,7 @@ export function AccountSettings({ user, token }: AccountSettingsProps) {
     setSuccess('');
 
     try {
-      const response = await fetch('https://swing-platform.brianduryea.workers.dev/api/user/update', {
+      const response = await fetch(`${API_BASE}/api/user/update`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

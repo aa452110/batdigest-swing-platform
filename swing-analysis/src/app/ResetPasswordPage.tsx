@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE } from '../services/api';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
 export function ResetPasswordPage() {
@@ -35,7 +36,7 @@ export function ResetPasswordPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://swing-platform.brianduryea.workers.dev/api/reset-password', {
+      const response = await fetch(`${API_BASE}/api/reset-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

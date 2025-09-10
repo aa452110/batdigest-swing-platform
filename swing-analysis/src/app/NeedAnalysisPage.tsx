@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../services/api';
+import { api, API_BASE } from '../services/api';
 import { resolveAnalyzedDownloadUrl } from '../lib/video';
 import type { VideoSubmission as ApiSubmission } from '../services/api';
 import { SwingShopHeader } from '../components/SwingShopHeader';
@@ -126,7 +126,7 @@ const NeedAnalysisPage: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`https://swing-platform.brianduryea.workers.dev/api/submission/${submission.submissionId}`, {
+      const response = await fetch(`${API_BASE}/api/submission/${submission.submissionId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json'
@@ -153,7 +153,7 @@ const NeedAnalysisPage: React.FC = () => {
     // Store the submission data to pass to analyzer
     console.log('Storing submission for analysis:', submission);
     // Use the Worker streaming endpoint - using r2Key instead of submissionId for the stream
-    const videoUrl = `https://swing-platform.brianduryea.workers.dev/api/video/stream/${submission.r2Key}`;
+    const videoUrl = `${API_BASE}/api/video/stream/${submission.r2Key}`;
     sessionStorage.setItem('selectedVideo', videoUrl);
     sessionStorage.setItem('selectedSubmission', JSON.stringify(submission));
     console.log('Navigating to analyzer with video URL:', videoUrl);
@@ -540,7 +540,7 @@ const NeedAnalysisPage: React.FC = () => {
                       {submission.r2Key ? (
                         <button
                           onClick={() => {
-                            const videoUrl = `https://swing-platform.brianduryea.workers.dev/api/video/stream/${submission.r2Key}`;
+                            const videoUrl = `${API_BASE}/api/video/stream/${submission.r2Key}`;
                             const link = document.createElement('a');
                             link.href = videoUrl;
                             link.download = `${submission.playerName}-original-${submission.submissionId}.mp4`;

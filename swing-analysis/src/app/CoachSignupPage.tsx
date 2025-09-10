@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE } from '../services/api';
 import { useNavigate, Link } from 'react-router-dom';
 
 export function CoachSignupPage() {
@@ -32,7 +33,7 @@ export function CoachSignupPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('https://swing-platform.brianduryea.workers.dev/api/coach/signup', {
+      const response = await fetch(`${API_BASE}/api/coach/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

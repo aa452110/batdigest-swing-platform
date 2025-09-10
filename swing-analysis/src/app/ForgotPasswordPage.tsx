@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE } from '../services/api';
 import { Link } from 'react-router-dom';
 
 export function ForgotPasswordPage() {
@@ -13,7 +14,7 @@ export function ForgotPasswordPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://swing-platform.brianduryea.workers.dev/api/forgot-password', {
+      const response = await fetch(`${API_BASE}/api/forgot-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

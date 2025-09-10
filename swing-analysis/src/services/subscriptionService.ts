@@ -2,7 +2,7 @@
  * Subscription service for handling plan changes, cancellations, and proration
  */
 
-const API_BASE = 'https://swing-platform.brianduryea.workers.dev';
+import { API_BASE } from './api';
 
 export type ProrationData = {
   isUpgrade: boolean;
