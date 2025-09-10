@@ -299,7 +299,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
             segments={recordedSegments as any}
             isUploading={isUploading}
             uploadStatus={uploadStatus}
-            onApprove={(segment, workoutPackage) => runUpload(segment, workoutPackage)}
+            onApprove={(segment) => runUpload(segment)}
             onDelete={(segment) => {
               URL.revokeObjectURL(segment.url);
               setRecordedSegments(prev => prev.filter(s => s.id !== segment.id));
