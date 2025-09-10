@@ -288,8 +288,8 @@ export function useRecordingEngine(params: Params) {
 
       displayStreamRef.current.getVideoTracks()[0].addEventListener('ended', () => stopRecording());
 
-      // Use timeslice but request data on stop to ensure finalization
-      rec.start(1000); // Back to 1 second chunks
+      // Start recording without timeslice for cleaner WebM timing/metadata
+      rec.start();
       setIsRecording(true);
       setIsPaused(false);
       recordingStartTimeRef.current = Date.now();
