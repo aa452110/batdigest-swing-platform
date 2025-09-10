@@ -53,17 +53,11 @@ const NeedAnalysisPage: React.FC = () => {
         coachCode: sub.coachCode,
         analysisResult: sub.analysisResult,
         analyzedAt: sub.analyzedAt,
-        // Prefer explicit API field if present; fall back to common variants
-        // Include Cloudflare Stream MP4 field from backend if provided
+        // Prefer explicit API field only (no synthesis)
         downloadUrl:
-          // explicit top-level
-          (sub as any).downloadUrl ||
-          // backend may expose either snake_case or camelCase
           (sub as any).analysis_download_url ||
           (sub as any).analysisDownloadUrl ||
-          // fallback to HLS field; client will convert to MP4 if needed
-          (sub as any).analysisUrl ||
-          (sub as any).analysis_url,
+          (sub as any).downloadUrl,
       }));
 
       // Sort by status priority (pending first, then uploading, then analyzing, then completed), 
@@ -113,7 +107,17 @@ const NeedAnalysisPage: React.FC = () => {
       alert('No analysis video available for this submission');
       return;
     }
-    window.open(url, '_blank');
+    
+    // Create a temporary anchor element to trigger download
+    // This handles Stream's redirect properly
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${submission.playerName}-analysis-${submission.submissionId}.mp4`;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleDelete = async (submission: VideoSubmission) => {
