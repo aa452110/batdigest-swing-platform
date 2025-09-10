@@ -4,7 +4,7 @@ export function useUpload(onAnalysisSaved?: () => void) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
 
-  const uploadAnalysis = useCallback(async (segment: any) => {
+  const uploadAnalysis = useCallback(async (segment: any, workoutPackage?: any) => {
     if (!segment?.blob) return;
     try {
       setIsUploading(true);
@@ -22,7 +22,8 @@ export function useUpload(onAnalysisSaved?: () => void) {
         fileName,
         duration: segment.duration,
         blobSize: segment.blob.size,
-        submission: submission
+        submission: submission,
+        workoutPackage: workoutPackage
       });
 
       const uploadEndpoint = 'https://swing-platform.brianduryea.workers.dev/api/analysis/upload-to-stream';
@@ -31,6 +32,17 @@ export function useUpload(onAnalysisSaved?: () => void) {
         contentType: 'video/webm',
         submissionId,
         duration: segment.duration,
+        workoutPackage: workoutPackage ? {
+          title: workoutPackage.title,
+          description: workoutPackage.description,
+          monday: workoutPackage.monday,
+          tuesday: workoutPackage.tuesday,
+          wednesday: workoutPackage.wednesday,
+          thursday: workoutPackage.thursday,
+          friday: workoutPackage.friday,
+          saturday: workoutPackage.saturday,
+          sunday: workoutPackage.sunday
+        } : null
       };
       
       console.log('[UPLOAD DEBUG] Calling endpoint:', uploadEndpoint);
