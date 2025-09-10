@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { compressVideo, needsCompression, formatFileSize } from '../recordingFunctions/videoCompression';
 
 export function useUpload(onAnalysisSaved?: () => void) {
   const [isUploading, setIsUploading] = useState(false);
@@ -6,8 +7,54 @@ export function useUpload(onAnalysisSaved?: () => void) {
 
   const uploadAnalysis = useCallback(async (segment: any) => {
     if (!segment?.blob) return;
+    
+    let videoToUpload = segment.blob;
+    let compressionApplied = false;
+    
     try {
       setIsUploading(true);
+      
+      // Check if compression is needed
+      if (needsCompression(segment.blob)) {
+        const originalSize = formatFileSize(segment.blob.size);
+        console.log(`[Upload] Video needs compression: ${originalSize}`);
+        setUploadStatus(`🎬 Compressing video (${originalSize})...`);
+        
+        try {
+          // Compress with progress updates
+          videoToUpload = await compressVideo(segment.blob, {
+            targetSizeMB: 175, // Conservative target as recommended
+            maxWidth: 1920,
+            maxHeight: 1080
+          }, (progress) => {
+            const progressText = progress.stage === 'Complete' 
+              ? '✅ Compression complete'
+              : `🎬 Compressing video (${progress.percent.toFixed(0)}%)...`;
+            setUploadStatus(progressText);
+          });
+          
+          compressionApplied = true;
+          const compressedSize = formatFileSize(videoToUpload.size);
+          console.log(`[Upload] Compression complete: ${compressedSize}`);
+          setUploadStatus('✅ Compression complete, uploading...');
+          
+        } catch (compressionError: any) {
+          // Compression failed - provide helpful feedback
+          console.error('[Upload] Compression failed:', compressionError);
+          
+          if (compressionError.message.includes('shorter video')) {
+            setUploadStatus('');
+            setIsUploading(false);
+            alert('Video is too large to upload. Please record a shorter video (under 3 minutes recommended) or use lower resolution.');
+            return;
+          }
+          
+          // Try to proceed with original if compression had an unexpected error
+          console.log('[Upload] Attempting upload with original video');
+          setUploadStatus('⚠️ Compression failed, attempting original upload...');
+        }
+      }
+      
       setUploadStatus('⏳ Requesting upload URL...');
 
       const submissionRaw = sessionStorage.getItem('selectedSubmission');
@@ -21,7 +68,9 @@ export function useUpload(onAnalysisSaved?: () => void) {
         submissionId,
         fileName,
         duration: segment.duration,
-        blobSize: segment.blob.size,
+        originalSize: formatFileSize(segment.blob.size),
+        uploadSize: formatFileSize(videoToUpload.size),
+        compressionApplied,
         submission: submission
       });
 
@@ -62,7 +111,8 @@ export function useUpload(onAnalysisSaved?: () => void) {
       const { uploadUrl } = uploadResponse;
       setUploadStatus('⏳ Uploading video... 0%');
 
-      const videoFile = new File([segment.blob], fileName, {
+      // Use the compressed video if compression was applied
+      const videoFile = new File([videoToUpload], fileName, {
         type: 'video/webm',
         lastModified: Date.now(),
       });
