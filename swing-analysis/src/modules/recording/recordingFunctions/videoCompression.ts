@@ -144,8 +144,30 @@ export async function compressVideo(
           throw new Error('Failed to get canvas context');
         }
 
-        // Set up MediaRecorder for re-encoding
-        const stream = canvas.captureStream(30); // 30 fps
+        // Set up MediaRecorder for re-encoding with audio
+        const canvasStream = canvas.captureStream(30); // 30 fps
+        
+        // Extract audio from the original video to preserve it
+        let combinedStream: MediaStream;
+        try {
+          // Create an audio context to capture audio from the video element
+          const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+          const source = audioContext.createMediaElementSource(video);
+          const destination = audioContext.createMediaStreamDestination();
+          source.connect(destination);
+          source.connect(audioContext.destination); // Also play audio during processing
+          
+          // Combine video from canvas and audio from original
+          combinedStream = new MediaStream([
+            ...canvasStream.getVideoTracks(),
+            ...destination.stream.getAudioTracks()
+          ]);
+          
+          console.log('[Compression] Audio tracks included:', destination.stream.getAudioTracks().length);
+        } catch (audioError) {
+          console.warn('[Compression] Could not extract audio, proceeding with video only:', audioError);
+          combinedStream = canvasStream;
+        }
         
         // Calculate bitrate based on target size
         const targetSizeBytes = maxSizeMB * 1024 * 1024;
@@ -156,9 +178,10 @@ export async function compressVideo(
         
         console.log(`[Compression] Using bitrate: ${(calculatedBitrate / 1000000).toFixed(2)} Mbps`);
         
-        const mediaRecorder = new MediaRecorder(stream, {
-          mimeType: 'video/webm;codecs=vp9',
-          videoBitsPerSecond: calculatedBitrate
+        const mediaRecorder = new MediaRecorder(combinedStream, {
+          mimeType: 'video/webm;codecs=vp9,opus',  // Include opus for audio
+          videoBitsPerSecond: calculatedBitrate,
+          audioBitsPerSecond: audioKbps * 1000  // Add audio bitrate
         });
         
         const chunks: Blob[] = [];
@@ -251,6 +274,7 @@ export async function compressVideo(
         
         // Start video playback with higher speed for faster processing
         video.currentTime = 0;
+        video.muted = true; // Mute to avoid audio feedback during processing
         video.playbackRate = 2.0; // Process at 2x speed
         await video.play();
         processFrame();
