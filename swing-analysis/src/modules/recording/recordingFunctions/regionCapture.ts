@@ -23,13 +23,16 @@ export async function captureElementRegion(element: HTMLElement, opts?: { audio?
       // REMOVED LOG - console.log('[RegionCapture] window.focus() failed:', e);
     }
     
-    // Ask for current tab explicitly
+    // Ask for current tab explicitly with 720p max resolution
     const displayConstraints: any = {
       video: {
         displaySurface: 'browser',
         preferCurrentTab: true,
         selfBrowserSurface: 'include',
         cursor: 'always',
+        // Add resolution constraints for 720p capture
+        width: { ideal: 1280, max: 1280 },
+        height: { ideal: 720, max: 720 },
       },
       audio: audio, // capture tab audio if requested
     };

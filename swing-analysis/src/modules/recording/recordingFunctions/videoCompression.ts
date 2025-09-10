@@ -78,8 +78,8 @@ export async function compressVideo(
 ): Promise<Blob> {
   const {
     targetSizeMB = 175, // Conservative target (leaves headroom for container overhead)
-    maxWidth = 1920,
-    maxHeight = 1080,
+    maxWidth = 1280,  // Default to 720p instead of 1080p
+    maxHeight = 720,   // Default to 720p instead of 1080p
     audioKbps = 128,
     minVideoBitrate = 700000
   } = options;

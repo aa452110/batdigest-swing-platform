@@ -8,7 +8,12 @@ export type DisplayMediaVideoOptions = MediaTrackConstraints & {
 export async function getDisplayMediaWithCursor(options?: { audio?: boolean }) {
   const audio = options?.audio ?? false;
   const constraints = {
-    video: { cursor: 'always' } as DisplayMediaVideoOptions,
+    video: { 
+      cursor: 'always',
+      // Add 720p resolution constraints
+      width: { ideal: 1280, max: 1280 },
+      height: { ideal: 720, max: 720 },
+    } as DisplayMediaVideoOptions,
     audio,
   } as any; // cast to any to appease stricter TS lib.dom
   return navigator.mediaDevices.getDisplayMedia(constraints);

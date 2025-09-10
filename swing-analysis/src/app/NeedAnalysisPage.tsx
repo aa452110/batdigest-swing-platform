@@ -54,7 +54,16 @@ const NeedAnalysisPage: React.FC = () => {
         analysisResult: sub.analysisResult,
         analyzedAt: sub.analyzedAt,
         // Prefer explicit API field if present; fall back to common variants
-        downloadUrl: (sub as any).downloadUrl || (sub as any).analysisUrl || (sub as any).analysis_url,
+        // Include Cloudflare Stream MP4 field from backend if provided
+        downloadUrl:
+          // explicit top-level
+          (sub as any).downloadUrl ||
+          // backend may expose either snake_case or camelCase
+          (sub as any).analysis_download_url ||
+          (sub as any).analysisDownloadUrl ||
+          // fallback to HLS field; client will convert to MP4 if needed
+          (sub as any).analysisUrl ||
+          (sub as any).analysis_url,
       }));
 
       // Sort by status priority (pending first, then uploading, then analyzing, then completed), 
