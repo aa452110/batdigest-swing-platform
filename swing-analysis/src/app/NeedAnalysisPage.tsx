@@ -335,6 +335,16 @@ const NeedAnalysisPage: React.FC = () => {
                     fontWeight: '600',
                     textTransform: 'uppercase'
                   }}>
+                    Original
+                  </th>
+                  <th style={{ 
+                    padding: '12px 16px', 
+                    textAlign: 'center',
+                    color: '#9ca3af',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    textTransform: 'uppercase'
+                  }}>
                     Delete
                   </th>
                 </tr>
@@ -501,65 +511,70 @@ const NeedAnalysisPage: React.FC = () => {
                         }
 
                         return (
-                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
-                            <button
-                              onClick={() => handleAnalyze(submission)}
-                              style={{
-                                padding: '8px 20px',
-                                backgroundColor: submission.status === 'analyzing' ? '#f59e0b' : '#10b981',
-                                color: '#ffffff',
-                                border: 'none',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontWeight: '500',
-                                fontSize: '14px',
-                                transition: 'background-color 0.2s'
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = submission.status === 'analyzing' ? '#d97706' : '#059669';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = submission.status === 'analyzing' ? '#f59e0b' : '#10b981';
-                              }}
-                            >
-                              {submission.status === 'analyzing' ? 'Continue →' : 'Analyze →'}
-                            </button>
-                            {submission.r2Key && (
-                              <button
-                                onClick={() => {
-                                  const videoUrl = `https://swing-platform.brianduryea.workers.dev/api/video/stream/${submission.r2Key}`;
-                                  const link = document.createElement('a');
-                                  link.href = videoUrl;
-                                  link.download = `${submission.playerName}-${submission.submissionId}.mp4`;
-                                  link.target = '_blank';
-                                  document.body.appendChild(link);
-                                  link.click();
-                                  document.body.removeChild(link);
-                                }}
-                                style={{
-                                  padding: '8px 12px',
-                                  backgroundColor: '#6b7280',
-                                  color: '#ffffff',
-                                  border: 'none',
-                                  borderRadius: '6px',
-                                  cursor: 'pointer',
-                                  fontSize: '14px',
-                                  transition: 'background-color 0.2s'
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.backgroundColor = '#4b5563';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor = '#6b7280';
-                                }}
-                                title="Download original video"
-                              >
-                                ⬇
-                              </button>
-                            )}
-                          </div>
+                          <button
+                            onClick={() => handleAnalyze(submission)}
+                            style={{
+                              padding: '8px 20px',
+                              backgroundColor: submission.status === 'analyzing' ? '#f59e0b' : '#10b981',
+                              color: '#ffffff',
+                              border: 'none',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontWeight: '500',
+                              fontSize: '14px',
+                              transition: 'background-color 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = submission.status === 'analyzing' ? '#d97706' : '#059669';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = submission.status === 'analyzing' ? '#f59e0b' : '#10b981';
+                            }}
+                          >
+                            {submission.status === 'analyzing' ? 'Continue →' : 'Analyze →'}
+                          </button>
                         );
                       })()}
+                    </td>
+                    <td style={{ padding: '16px', textAlign: 'center' }}>
+                      {submission.r2Key ? (
+                        <button
+                          onClick={() => {
+                            const videoUrl = `https://swing-platform.brianduryea.workers.dev/api/video/stream/${submission.r2Key}`;
+                            const link = document.createElement('a');
+                            link.href = videoUrl;
+                            link.download = `${submission.playerName}-original-${submission.submissionId}.mp4`;
+                            link.target = '_blank';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }}
+                          style={{
+                            padding: '8px 20px',
+                            backgroundColor: '#6b7280',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontWeight: '500',
+                            fontSize: '14px',
+                            transition: 'background-color 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#4b5563';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#6b7280';
+                          }}
+                          title="Download original submitted video"
+                        >
+                          Original ⬇
+                        </button>
+                      ) : (
+                        <span style={{ color: '#6b7280', fontSize: '12px' }}>
+                          N/A
+                        </span>
+                      )}
                     </td>
                     <td style={{ padding: '16px', textAlign: 'center' }}>
                       <button
