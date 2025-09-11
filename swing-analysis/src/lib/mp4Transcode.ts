@@ -18,11 +18,11 @@ async function ensureFfmpegLoaded() {
   ]);
   FFmpegCtor = FFmpeg;
 
-  // Build blob URLs for core files from public/ffmpeg
-  const coreBase = '/ffmpeg/';
-  const coreURL = await util.toBlobURL(coreBase + 'ffmpeg-core.js', 'text/javascript');
-  const wasmURL = await util.toBlobURL(coreBase + 'ffmpeg-core.wasm', 'application/wasm');
-  const workerURL = await util.toBlobURL(coreBase + 'ffmpeg-core.worker.js', 'text/javascript');
+  // Load from CDN to avoid Cloudflare Pages 25MB limit
+  const cdnBase = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/';
+  const coreURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.js', 'text/javascript');
+  const wasmURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.wasm', 'application/wasm');
+  const workerURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.worker.js', 'text/javascript');
 
   ffmpegInstance = new FFmpegCtor();
   await ffmpegInstance.load({ coreURL, wasmURL, workerURL });
