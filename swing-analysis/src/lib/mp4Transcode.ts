@@ -54,16 +54,21 @@ export async function transcodeWebmToMp4(
   const outputName = 'output.mp4';
   await ffmpegInstance.writeFile(inputName, inputData);
 
-  // Run transcode: H.264/AAC, fast start, yuv420p for broad compatibility
+  // Run transcode from the original recorded WebM: map both streams explicitly
   const args = [
     '-i', inputName,
+    '-map', '0:v:0',
+    '-map', '0:a:0',
     '-c:v', 'libx264',
+    '-pix_fmt', 'yuv420p',
     '-preset', 'veryfast',
     '-crf', '23',
-    '-pix_fmt', 'yuv420p',
     '-c:a', 'aac',
     '-b:a', '128k',
+    '-ac', '2',
+    '-ar', '48000',
     '-movflags', '+faststart',
+    '-shortest',
     outputName,
   ];
 
