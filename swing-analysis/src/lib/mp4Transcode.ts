@@ -19,10 +19,22 @@ async function ensureFfmpegLoaded() {
   FFmpegCtor = FFmpeg;
 
   // Load from CDN to avoid Cloudflare Pages 25MB limit
-  const cdnBase = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/';
-  const coreURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.js', 'text/javascript');
-  const wasmURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.wasm', 'application/wasm');
-  const workerURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.worker.js', 'text/javascript');
+  // Use the official dist paths (no umd subfolder)
+  let coreURL: string;
+  let wasmURL: string;
+  let workerURL: string;
+  try {
+    const cdnBase = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/';
+    coreURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.js', 'text/javascript');
+    wasmURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.wasm', 'application/wasm');
+    workerURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.worker.js', 'text/javascript');
+  } catch {
+    // Fallback to jsDelivr if unpkg path fails
+    const cdnBase = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/';
+    coreURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.js', 'text/javascript');
+    wasmURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.wasm', 'application/wasm');
+    workerURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.worker.js', 'text/javascript');
+  }
 
   ffmpegInstance = new FFmpegCtor();
   await ffmpegInstance.load({ coreURL, wasmURL, workerURL });
@@ -72,4 +84,3 @@ export async function transcodeWebmToMp4(
 
   return mp4Blob;
 }
-
