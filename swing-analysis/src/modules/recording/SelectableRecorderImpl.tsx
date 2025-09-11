@@ -38,6 +38,9 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
   
   const [recordedSegments, setRecordedSegments] = useState<any[]>([]);
   const [previewSegment, setPreviewSegment] = useState<{ id: string; url: string; blob: Blob; duration: number } | null>(null);
+  const [isTranscoding, setIsTranscoding] = useState(false);
+  const [transcodeProgress, setTranscodeProgress] = useState(0);
+  const [transcodeStatus, setTranscodeStatus] = useState<string>('');
   
   
   const { 
@@ -335,32 +338,70 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
               </button>
             </div>
             <div className="p-3">
-              <video
-                src={previewSegment.url}
-                controls
-                autoPlay
-                muted={false}
-                className="w-full max-h-[60vh] bg-black rounded"
-                style={{ objectFit: 'contain' }}
-                onLoadedMetadata={(e) => {
-                  const video = e.currentTarget;
-                  console.log('[PREVIEW] Video loaded - has audio:', (video as any).webkitAudioDecodedByteCount > 0 || (video as any).mozHasAudio);
-                  video.volume = 1.0;
-                  video.muted = false;
-                }}
-              />
-              <div className="mt-2 bg-yellow-900 p-2 rounded text-sm">
-                ⚠️ If no audio: Click video, then unmute using controls. Chrome may auto-mute.
-              </div>
+              {!isTranscoding ? (
+                <>
+                  <video
+                    src={previewSegment.url}
+                    controls
+                    autoPlay
+                    muted={false}
+                    className="w-full max-h-[60vh] bg-black rounded"
+                    style={{ objectFit: 'contain' }}
+                    onLoadedMetadata={(e) => {
+                      const video = e.currentTarget;
+                      console.log('[PREVIEW] Video loaded - has audio:', (video as any).webkitAudioDecodedByteCount > 0 || (video as any).mozHasAudio);
+                      video.volume = 1.0;
+                      video.muted = false;
+                    }}
+                  />
+                  <div className="mt-2 bg-yellow-900 p-2 rounded text-sm">
+                    ⚠️ If no audio: Click video, then unmute using controls. Chrome may auto-mute.
+                  </div>
+                </>
+              ) : (
+                <div className="p-6 bg-gray-800 rounded text-center">
+                  <div className="text-sm text-gray-300 mb-2">Transcoding to MP4 (H.264/AAC)…</div>
+                  <div className="w-full bg-gray-700 rounded-full h-3 mb-2">
+                    <div className="bg-blue-500 h-3 rounded-full transition-all duration-300" style={{ width: `${transcodeProgress}%` }} />
+                  </div>
+                  <div className="text-xs text-gray-400">{transcodeStatus || `${transcodeProgress}%`}</div>
+                </div>
+              )}
             </div>
             <div className="flex gap-2 p-3 border-t border-gray-700">
+              <button
+                onClick={async () => {
+                  try {
+                    setIsTranscoding(true);
+                    setTranscodeProgress(0);
+                    setTranscodeStatus('Initializing…');
+                    const { transcodeWebmToMp4 } = await import('../../lib/mp4Transcode');
+                    setTranscodeStatus('Transcoding…');
+                    const mp4Blob = await transcodeWebmToMp4(previewSegment!.blob, (p) => setTranscodeProgress(p));
+                    const mp4Url = URL.createObjectURL(mp4Blob);
+                    const updated = { ...previewSegment!, blob: mp4Blob, url: mp4Url };
+                    setPreviewSegment(updated);
+                    setRecordedSegments(prev => prev.map(s => s.id === updated.id ? updated : s));
+                    setTranscodeStatus('Complete');
+                  } catch (e: any) {
+                    console.error('[MP4] Transcode failed:', e);
+                    setTranscodeStatus('Failed: ' + (e?.message || 'Unknown error'));
+                  } finally {
+                    setTimeout(() => { setIsTranscoding(false); }, 300);
+                  }
+                }}
+                disabled={isTranscoding || isUploading}
+                className={`px-3 py-1 ${isTranscoding ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded transition-colors`}
+              >
+                {isTranscoding ? `Transcoding… ${transcodeProgress}%` : 'Transcode to MP4 (H.264/AAC)'}
+              </button>
               <button
                 onClick={() => {
                   runUpload(previewSegment);
                   setPreviewSegment(null);
                 }}
-                disabled={isUploading}
-                className={`px-3 py-1 ${isUploading ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'} text-white rounded transition-colors`}
+                disabled={isUploading || isTranscoding}
+                className={`px-3 py-1 ${isUploading || isTranscoding ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'} text-white rounded transition-colors`}
               >
                 {isUploading ? 'Uploading…' : 'Approve & Send to Player'}
               </button>

@@ -1,0 +1,75 @@
+// Lightweight wrapper around ffmpeg.wasm to transcode WebM (VP8/Opus) to MP4 (H.264/AAC)
+// - Lazily loads FFmpeg core files from /ffmpeg/* (place core files in public/ffmpeg)
+// - Exposes progress 0..100
+// - Returns an MP4 Blob suitable for preview and upload
+
+export type TranscodeProgressCb = (percent: number) => void;
+
+let ffmpegLoaded = false as boolean;
+let FFmpegCtor: any = null;
+let ffmpegInstance: any = null;
+
+async function ensureFfmpegLoaded() {
+  if (ffmpegLoaded) return;
+  // Dynamic import to keep initial bundle lean
+  const [{ FFmpeg }, util] = await Promise.all([
+    import('@ffmpeg/ffmpeg'),
+    import('@ffmpeg/util'),
+  ]);
+  FFmpegCtor = FFmpeg;
+
+  // Build blob URLs for core files from public/ffmpeg
+  const coreBase = '/ffmpeg/';
+  const coreURL = await util.toBlobURL(coreBase + 'ffmpeg-core.js', 'text/javascript');
+  const wasmURL = await util.toBlobURL(coreBase + 'ffmpeg-core.wasm', 'application/wasm');
+  const workerURL = await util.toBlobURL(coreBase + 'ffmpeg-core.worker.js', 'text/javascript');
+
+  ffmpegInstance = new FFmpegCtor();
+  await ffmpegInstance.load({ coreURL, wasmURL, workerURL });
+  ffmpegLoaded = true;
+}
+
+export async function transcodeWebmToMp4(
+  source: Blob,
+  onProgress?: TranscodeProgressCb
+): Promise<Blob> {
+  await ensureFfmpegLoaded();
+
+  // Hook progress
+  ffmpegInstance.on('progress', ({ progress }: { progress: number }) => {
+    if (onProgress) onProgress(Math.max(0, Math.min(100, Math.round(progress * 100))));
+  });
+
+  // Write input
+  const { fetchFile } = await import('@ffmpeg/util');
+  const inputData = await fetchFile(source);
+  const inputName = 'input.webm';
+  const outputName = 'output.mp4';
+  await ffmpegInstance.writeFile(inputName, inputData);
+
+  // Run transcode: H.264/AAC, fast start, yuv420p for broad compatibility
+  const args = [
+    '-i', inputName,
+    '-c:v', 'libx264',
+    '-preset', 'veryfast',
+    '-crf', '23',
+    '-pix_fmt', 'yuv420p',
+    '-c:a', 'aac',
+    '-b:a', '128k',
+    '-movflags', '+faststart',
+    outputName,
+  ];
+
+  await ffmpegInstance.exec(args);
+
+  // Read result
+  const outData = await ffmpegInstance.readFile(outputName);
+  const mp4Blob = new Blob([outData as Uint8Array], { type: 'video/mp4' });
+
+  // Cleanup (best-effort)
+  try { await ffmpegInstance.deleteFile(inputName); } catch {}
+  try { await ffmpegInstance.deleteFile(outputName); } catch {}
+
+  return mp4Blob;
+}
+

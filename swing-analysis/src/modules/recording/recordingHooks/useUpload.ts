@@ -62,7 +62,10 @@ export function useUpload(onAnalysisSaved?: () => void) {
       const submission = submissionRaw ? JSON.parse(submissionRaw) : null;
       // Handle both formats: submission.submissionId (from CoachQueue) or submission.submission_id (from NeedAnalysis)
       const submissionId = submission?.submissionId || submission?.submission_id || submission?.id || 'unknown';
-      const fileName = `analysis-${submissionId}-${Date.now()}.webm`;
+      // Pick extension and content-type based on blob type
+      const isMp4 = segment.blob?.type === 'video/mp4';
+      const ext = isMp4 ? 'mp4' : 'webm';
+      const fileName = `analysis-${submissionId}-${Date.now()}.${ext}`;
 
       // Debug logging
       console.log('[UPLOAD DEBUG] Starting upload with:', {
@@ -78,7 +81,7 @@ export function useUpload(onAnalysisSaved?: () => void) {
       const uploadEndpoint = `${API_BASE}/api/analysis/upload-to-stream`;
       const requestBody = {
         fileName,
-        contentType: 'video/webm',
+        contentType: isMp4 ? 'video/mp4' : 'video/webm',
         submissionId,
         duration: segment.duration,
       };
@@ -112,9 +115,9 @@ export function useUpload(onAnalysisSaved?: () => void) {
       const { uploadUrl } = uploadResponse;
       setUploadStatus('⏳ Uploading video... 0%');
 
-      // Use the compressed video if compression was applied
-      const videoFile = new File([videoToUpload], fileName, {
-        type: 'video/webm',
+      // Use the compressed/transcoded video
+      const videoFile = new File([isMp4 ? segment.blob : videoToUpload], fileName, {
+        type: isMp4 ? 'video/mp4' : 'video/webm',
         lastModified: Date.now(),
       });
 
