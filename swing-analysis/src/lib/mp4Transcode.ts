@@ -23,22 +23,24 @@ async function ensureFfmpegLoaded() {
   let coreURL: string;
   let wasmURL: string;
   let workerURL: string;
-  // Try known-good UMD paths for multi-threaded core v0.12.10
+  // Try known-good UMD paths for single-thread core v0.12.10 (no worker required)
   try {
-    const cdnBase = 'https://unpkg.com/@ffmpeg/core-mt@0.12.10/dist/umd/';
+    const cdnBase = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/';
     coreURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.js', 'text/javascript');
     wasmURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.wasm', 'application/wasm');
-    workerURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.worker.js', 'text/javascript');
+    workerURL = '';
   } catch {
     // Fallback to jsDelivr UMD path
-    const cdnBase = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core-mt@0.12.10/dist/umd/';
+    const cdnBase = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/';
     coreURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.js', 'text/javascript');
     wasmURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.wasm', 'application/wasm');
-    workerURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.worker.js', 'text/javascript');
+    workerURL = '';
   }
 
   ffmpegInstance = new FFmpegCtor();
-  await ffmpegInstance.load({ coreURL, wasmURL, workerURL });
+  const loadOpts: any = { coreURL, wasmURL };
+  if (workerURL) loadOpts.workerURL = workerURL;
+  await ffmpegInstance.load(loadOpts);
   ffmpegLoaded = true;
 }
 
