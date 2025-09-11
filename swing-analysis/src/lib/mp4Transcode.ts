@@ -23,19 +23,11 @@ async function ensureFfmpegLoaded() {
   let coreURL: string;
   let wasmURL: string;
   let workerURL: string;
-  // Try known-good UMD paths for single-thread core v0.12.10 (no worker required)
-  try {
-    const cdnBase = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/';
-    coreURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.js', 'text/javascript');
-    wasmURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.wasm', 'application/wasm');
-    workerURL = '';
-  } catch {
-    // Fallback to jsDelivr UMD path
-    const cdnBase = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/';
-    coreURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.js', 'text/javascript');
-    wasmURL = await util.toBlobURL(cdnBase + 'ffmpeg-core.wasm', 'application/wasm');
-    workerURL = '';
-  }
+  // Load core via Worker proxy to ensure CORS and availability
+  const proxyBase = 'https://swing-platform.brianduryea.workers.dev/api/ffmpeg-core/';
+  coreURL = await util.toBlobURL(proxyBase + 'ffmpeg-core.js', 'text/javascript');
+  wasmURL = await util.toBlobURL(proxyBase + 'ffmpeg-core.wasm', 'application/wasm');
+  workerURL = '';
 
   ffmpegInstance = new FFmpegCtor();
   const loadOpts: any = { coreURL, wasmURL };
