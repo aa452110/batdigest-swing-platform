@@ -259,11 +259,22 @@ export function useRecordingEngine(params: Params) {
           const elapsed = Date.now() - recordingStartTimeRef.current - pausedDurationRef.current;
           const dur = Math.floor(elapsed / 1000);
           setRecordingDuration(dur);
-          if (dur >= maxDurationSec) { setRecordingWarning('Recording stopped - 5 minute limit reached'); setShouldStopRecording(true); }
-          else if (dur >= 270) setRecordingWarning('30 seconds remaining!');
-          else if (dur >= 240) setRecordingWarning('1 minute remaining');
-          else if (dur >= 180) setRecordingWarning('2 minutes remaining');
-          else setRecordingWarning('');
+          const minutesCap = Math.floor(maxDurationSec / 60);
+          const warn30 = Math.max(0, maxDurationSec - 30);
+          const warn60 = Math.max(0, maxDurationSec - 60);
+          const warn120 = Math.max(0, maxDurationSec - 120);
+          if (dur >= maxDurationSec) {
+            setRecordingWarning(`Recording stopped - ${minutesCap} minute limit reached`);
+            setShouldStopRecording(true);
+          } else if (dur >= warn30 && maxDurationSec >= 60) {
+            setRecordingWarning('30 seconds remaining!');
+          } else if (dur >= warn60 && maxDurationSec >= 120) {
+            setRecordingWarning('1 minute remaining');
+          } else if (dur >= warn120 && maxDurationSec >= 180) {
+            setRecordingWarning('2 minutes remaining');
+          } else {
+            setRecordingWarning('');
+          }
         }
       }, 1000) as unknown as number;
       recordingTimerRef.current = timer;

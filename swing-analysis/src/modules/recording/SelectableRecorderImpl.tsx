@@ -136,7 +136,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
     stopAudioMonitoring,
     setMicStatus,
     onSegmentReady,
-    maxDurationSec: 300,
+    maxDurationSec: 600,
     getCaptureStream: async () => {
       // Target the actual video container (1280x720), not the wrapper with controls
       const captureElement = document.getElementById('video-container-actual');
