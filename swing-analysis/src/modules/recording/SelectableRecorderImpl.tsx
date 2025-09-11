@@ -41,6 +41,10 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
   const [isTranscoding, setIsTranscoding] = useState(false);
   const [transcodeProgress, setTranscodeProgress] = useState(0);
   const [transcodeStatus, setTranscodeStatus] = useState<string>('');
+  // FFmpeg preloading UI state
+  const [isCoreLoading, setIsCoreLoading] = useState<boolean>(false);
+  const [coreStatus, setCoreStatus] = useState<string>('');
+  const [corePct, setCorePct] = useState<number>(0);
   
   
   const { 
@@ -207,6 +211,30 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
     };
   }, []); // Empty deps - only run on unmount
 
+  // Preload FFmpeg core as soon as analyzer loads so user sees progress and avoids initial stall
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setIsCoreLoading(true);
+        const mod = await import('../../lib/mp4Transcode');
+        if (cancelled) return;
+        if (!mod.isFfmpegLoaded()) {
+          await mod.preloadFfmpeg(
+            (msg) => { if (!cancelled) setCoreStatus(msg); },
+            (pct) => { if (!cancelled) setCorePct(pct); }
+          );
+        }
+      } catch (e) {
+        console.warn('[Analyzer] FFmpeg preload failed:', e);
+        setCoreStatus('FFmpeg preload failed');
+      } finally {
+        if (!cancelled) setIsCoreLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   // Close preview on ESC
   useEffect(() => {
     if (!previewSegment) return;
@@ -254,6 +282,12 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
         />
         
         <div className="space-y-3">
+          {isCoreLoading && (
+            <div className="p-2 rounded bg-gray-700 text-gray-200 text-sm flex items-center gap-2">
+              <span className="inline-block animate-spin w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full" />
+              <span>{coreStatus || 'Loading FFmpeg…'}{corePct ? ` ${corePct}%` : ''}</span>
+            </div>
+          )}
           {!isRecording && (
             <>
               <PreRecordActions
