@@ -175,7 +175,7 @@ export function LandingPage() {
               <Link to="/coach/login" className="text-gray-400 hover:text-white">Coach Login</Link>
               <Link to="/account" className="text-gray-400 hover:text-white">My Account</Link>
               <Link to="/privacy" className="text-gray-400 hover:text-white">Privacy</Link>
-              <a href="mailto:support@batdigest.com" className="text-gray-400 hover:text-white">Support</a>
+              <Link to="/support" className="text-gray-400 hover:text-white">Support</Link>
             </div>
           </div>
         </div>

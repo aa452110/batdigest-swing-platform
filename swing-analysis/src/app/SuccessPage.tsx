@@ -108,10 +108,11 @@ export function SuccessPage() {
 
           {/* Support */}
           <p className="text-center text-sm text-gray-500 mt-8">
-            Need help? Email us at{' '}
-            <a href="mailto:support@batdigest.com" className="text-cyan-600 hover:underline">
-              support@batdigest.com
-            </a>
+            Need help? Visit our{' '}
+            <Link to="/support" className="text-cyan-600 hover:underline">
+              Support
+            </Link>
+            {' '}page.
           </p>
         </div>
       </div>

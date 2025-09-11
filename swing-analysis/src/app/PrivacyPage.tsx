@@ -338,7 +338,7 @@ export function PrivacyPage() {
               <Link to="/login" className="text-gray-400 hover:text-white">Player Login</Link>
               <Link to="/coach/login" className="text-gray-400 hover:text-white">Coach Login</Link>
               <Link to="/privacy" className="text-gray-400 hover:text-white">Privacy Policy</Link>
-              <a href="mailto:support@batdigest.com" className="text-gray-400 hover:text-white">Support</a>
+              <Link to="/support" className="text-gray-400 hover:text-white">Support</Link>
             </div>
           </div>
         </div>

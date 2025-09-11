@@ -29,6 +29,7 @@ import AdminDashboard from './app/AdminDashboard';
 import TestCapturePage from './app/TestCapturePage';
 import TestExtensionPage from './app/TestExtensionPage';
 import TestAudioPage from './app/TestAudioPage';
+import SupportPage from './app/SupportPage';
 
 // Auth components
 import { AdminAuth } from './components/AdminAuth';
@@ -45,6 +46,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/support" element={<SupportPage />} />
         
         {/* Protected Routes (require login) */}
         <Route path="/account" element={<AccountPage />} />
