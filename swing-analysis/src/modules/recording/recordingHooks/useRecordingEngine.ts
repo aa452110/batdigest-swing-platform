@@ -18,6 +18,98 @@ type Params = {
   getCaptureStream?: () => Promise<MediaStream | null>;
 };
 
+// Remux a recorded WebM blob by decoding via <video>, drawing to canvas, and
+// capturing the video's own audio through WebAudio. Produces a clean container
+// with finite duration, keeping audio intact for better transcoder compatibility.
+async function remuxWebmWithAudio(originalBlob: Blob): Promise<Blob> {
+  console.log('[REMUX] Initializing remux pipeline...');
+  return new Promise<Blob>((resolve, reject) => {
+    try {
+      const video = document.createElement('video');
+      const url = URL.createObjectURL(originalBlob);
+      video.src = url;
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = 'auto';
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas 2D context unavailable');
+
+      video.onloadedmetadata = async () => {
+        try {
+          const w = Math.max(1, video.videoWidth || 1280);
+          const h = Math.max(1, video.videoHeight || 720);
+          canvas.width = w;
+          canvas.height = h;
+
+          const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
+          const ac: AudioContext = new AudioCtx();
+          const source = ac.createMediaElementSource(video);
+          const dest = ac.createMediaStreamDestination();
+          source.connect(dest);
+          source.connect(ac.destination);
+          try { await ac.resume(); } catch {}
+
+          const canvasStream = canvas.captureStream(30);
+          const combined = new MediaStream([
+            ...canvasStream.getVideoTracks(),
+            ...dest.stream.getAudioTracks(),
+          ]);
+
+          const mime = ((): string => {
+            if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) return 'video/webm;codecs=vp8,opus';
+            if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')) return 'video/webm;codecs=vp9,opus';
+            return 'video/webm';
+          })();
+
+          const chunks: Blob[] = [];
+          const rec = new MediaRecorder(combined, { mimeType: mime });
+          rec.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+          rec.onstop = () => {
+            const out = new Blob(chunks, { type: mime });
+            console.log('[REMUX] Recorder stopped. Remuxed blob size:', out.size);
+            URL.revokeObjectURL(url);
+            try { source.disconnect(); } catch {}
+            try { dest.disconnect(); } catch {}
+            try { ac.close(); } catch {}
+            resolve(out);
+          };
+
+          const draw = () => {
+            if (!video.paused && !video.ended) {
+              ctx.drawImage(video, 0, 0, w, h);
+              requestAnimationFrame(draw);
+            }
+          };
+
+          console.log('[REMUX] Starting remux recording...');
+          rec.start();
+          await video.play();
+          requestAnimationFrame(draw);
+          video.onended = () => { try { rec.stop(); } catch {} };
+        } catch (err) {
+          URL.revokeObjectURL(url);
+          console.error('[REMUX] Failed during remux:', err);
+          reject(err);
+        }
+      };
+
+      video.onerror = () => {
+        URL.revokeObjectURL(url);
+        console.error('[REMUX] Failed to load recorded blob for remux');
+        reject(new Error('Failed to load blob into video for remux'));
+      };
+
+      // Force load to trigger metadata
+      video.load();
+    } catch (e) {
+      console.error('[REMUX] Unexpected error initializing remux:', e);
+      reject(e as any);
+    }
+  });
+}
+
 export function useRecordingEngine(params: Params) {
   const {
     canvasRef,
@@ -137,6 +229,8 @@ export function useRecordingEngine(params: Params) {
         // Prepare WebAudio graph
         audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
         mixedDestination = audioContext.createMediaStreamDestination();
+        // Ensure the context is running (some browsers suspend by default)
+        try { await audioContext.resume(); } catch {}
 
         // Helper to add a MediaStreamTrack to the mix
         const addTrackToMix = (track: MediaStreamTrack, label: string) => {
@@ -190,19 +284,19 @@ export function useRecordingEngine(params: Params) {
         console.log(`  - Audio track ${i}:`, t.label, 'enabled:', t.enabled, 'settings:', t.getSettings());
       });
 
-      // Prefer formats that explicitly include an audio codec so microphone/tab audio is muxed
+      // Prefer formats that explicitly include an audio codec; try VP8+Opus first for better ingest compatibility
       let mimeType = 'video/webm';
-      if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')) {
-        mimeType = 'video/webm;codecs=vp9,opus';
-        console.log('[AUDIO DEBUG] Using mimeType with opus audio:', mimeType);
-      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
+      if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
         mimeType = 'video/webm;codecs=vp8,opus';
         console.log('[AUDIO DEBUG] Using mimeType with opus audio:', mimeType);
-      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
-        mimeType = 'video/webm;codecs=vp9';
-        console.log('[AUDIO DEBUG] WARNING: Using mimeType WITHOUT explicit audio codec:', mimeType);
+      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')) {
+        mimeType = 'video/webm;codecs=vp9,opus';
+        console.log('[AUDIO DEBUG] Using mimeType with opus audio:', mimeType);
       } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
         mimeType = 'video/webm;codecs=vp8';
+        console.log('[AUDIO DEBUG] WARNING: Using mimeType WITHOUT explicit audio codec:', mimeType);
+      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
+        mimeType = 'video/webm;codecs=vp9';
         console.log('[AUDIO DEBUG] WARNING: Using mimeType WITHOUT explicit audio codec:', mimeType);
       }
       
@@ -224,58 +318,40 @@ export function useRecordingEngine(params: Params) {
           console.log('[AUDIO DEBUG] Data chunk received, size:', e.data.size);
         }
       };
-      rec.onstop = () => {
+      rec.onstop = async () => {
         console.log('[AUDIO DEBUG] Recording stopped, total chunks:', recordedChunksRef.current.length);
         // Use the same mimeType we recorded with for the blob
         const blob = new Blob(recordedChunksRef.current, { type: mimeType });
         console.log('[AUDIO DEBUG] Final blob size:', blob.size, 'bytes, type:', mimeType);
-        
-        // Test if the blob has audio - create test video element
-        const testUrl = URL.createObjectURL(blob);
-        const testVideo = document.createElement('video');
-        testVideo.muted = false; // Ensure not muted
-        testVideo.volume = 0.5;
-        testVideo.src = testUrl;
-        
-        // Also create an audio element to double-check
-        const testAudio = document.createElement('audio');
-        testAudio.src = testUrl;
-        
-        testVideo.onloadedmetadata = () => {
-          console.log('[AUDIO DEBUG] Recording metadata:');
-          console.log('  - Duration:', testVideo.duration, 'seconds');
-          console.log('  - Video tracks:', testVideo.videoTracks?.length || 'unknown');
-          console.log('  - Audio tracks:', testVideo.audioTracks?.length || 'unknown');
-          
-          // Try multiple ways to detect audio
-          const hasAudioMoz = !!(testVideo as any).mozHasAudio;
-          const hasAudioWebkit = !!((testVideo as any).webkitAudioDecodedByteCount > 0);
-          const hasAudioTracks = !!(testVideo as any).audioTracks?.length > 0;
-          
-          console.log('  - Has audio (mozHasAudio):', hasAudioMoz);
-          console.log('  - Has audio (webkit):', hasAudioWebkit);
-          console.log('  - Has audio (tracks):', hasAudioTracks);
-          
-          // Try to play a bit to check audio
-          testVideo.currentTime = 1; // Skip ahead a bit
-          testVideo.play().then(() => {
-            console.log('[AUDIO DEBUG] Test playback started successfully');
-            setTimeout(() => {
-              const decodedBytes = (testVideo as any).webkitAudioDecodedByteCount;
-              console.log('[AUDIO DEBUG] Audio bytes decoded after play:', decodedBytes || 0);
-              testVideo.pause();
-            }, 500);
-          }).catch(e => {
-            console.log('[AUDIO DEBUG] Test playback failed:', e);
-          });
-        };
-        
-        testAudio.onloadedmetadata = () => {
-          console.log('[AUDIO DEBUG] Audio element loaded, duration:', testAudio.duration);
-        };
-        
-        const url = URL.createObjectURL(blob);
-        onSegmentReady({ id: Date.now().toString(), url, blob, duration: recordingDuration });
+
+        // Probe duration and remux if needed (handles Infinity duration WebM)
+        const fixedBlob = await (async () => {
+          try {
+            const testUrl = URL.createObjectURL(blob);
+            const testVideo = document.createElement('video');
+            testVideo.muted = true;
+            testVideo.src = testUrl;
+            const dur = await new Promise<number>((resolve) => {
+              testVideo.onloadedmetadata = () => resolve(testVideo.duration);
+              testVideo.onerror = () => resolve(NaN);
+            });
+            URL.revokeObjectURL(testUrl);
+            console.log('[AUDIO DEBUG] Recording metadata:');
+            console.log('  - Duration:', dur, 'seconds');
+            if (!isFinite(dur) || dur === Infinity) {
+              console.warn('[REMUX] Detected Infinity duration. Starting remux fallback...');
+              const remuxed = await remuxWebmWithAudio(blob);
+              console.log('[REMUX] Remux complete. New blob size:', remuxed.size);
+              return remuxed;
+            }
+          } catch (e) {
+            console.warn('[REMUX] Probe failed, skipping remux:', e);
+          }
+          return blob;
+        })();
+
+        const url = URL.createObjectURL(fixedBlob);
+        onSegmentReady({ id: Date.now().toString(), url, blob: fixedBlob, duration: recordingDuration });
         stopDrawing();
         if (displayStreamRef.current) { displayStreamRef.current.getTracks().forEach((t) => t.stop()); displayStreamRef.current = null; }
         if (audioStreamRef.current) { audioStreamRef.current.getTracks().forEach((t) => t.stop()); audioStreamRef.current = null; }
