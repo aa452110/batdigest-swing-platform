@@ -23,11 +23,11 @@ async function ensureFfmpegLoaded() {
   let coreURL: string;
   let wasmURL: string;
   let workerURL: string;
-  // Load core via Worker proxy to ensure CORS and availability
+  // Load core via Worker proxy (multi-threaded core with worker)
   const proxyBase = 'https://swing-platform.brianduryea.workers.dev/api/ffmpeg-core/';
   coreURL = await util.toBlobURL(proxyBase + 'ffmpeg-core.js', 'text/javascript');
   wasmURL = await util.toBlobURL(proxyBase + 'ffmpeg-core.wasm', 'application/wasm');
-  workerURL = '';
+  workerURL = await util.toBlobURL(proxyBase + 'ffmpeg-core.worker.js', 'text/javascript');
 
   ffmpegInstance = new FFmpegCtor();
   const loadOpts: any = { coreURL, wasmURL };
