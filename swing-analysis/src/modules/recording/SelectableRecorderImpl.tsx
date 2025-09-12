@@ -326,6 +326,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
               recordingWarning={recordingWarning}
               micStatus={micStatus}
               audioLevel={audioLevel}
+              maxDurationSec={600}
               onPause={pauseRecording}
               onResume={resumeRecording}
               onStop={stopRecording}

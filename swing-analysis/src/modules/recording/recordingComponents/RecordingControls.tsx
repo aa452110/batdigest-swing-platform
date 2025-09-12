@@ -9,6 +9,8 @@ type Props = {
   onPause: () => void;
   onResume: () => void;
   onStop: () => void;
+  // Show correct cap on the UI (defaults to 5 minutes if not provided)
+  maxDurationSec?: number;
 };
 
 const RecordingControls: React.FC<Props> = ({
@@ -20,7 +22,16 @@ const RecordingControls: React.FC<Props> = ({
   onPause,
   onResume,
   onStop,
+  maxDurationSec = 300,
 }) => {
+  const capMin = Math.floor(maxDurationSec / 60);
+  const capSec = (maxDurationSec % 60).toString().padStart(2, '0');
+  const pct = Math.min((recordingDuration / maxDurationSec) * 100, 100);
+  const warn30 = Math.max(0, maxDurationSec - 30);
+  const warn60 = Math.max(0, maxDurationSec - 60);
+  const isRed = recordingDuration >= warn30;
+  const isYellow = !isRed && recordingDuration >= warn60;
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
@@ -28,7 +39,7 @@ const RecordingControls: React.FC<Props> = ({
           <div className={`w-2 h-2 ${isPaused ? 'bg-yellow-500' : 'bg-red-500 animate-pulse'} rounded-full`} />
           <span className="text-sm text-white">
             {isPaused ? 'Paused' : 'Recording'}: {Math.floor(recordingDuration / 60)}:
-            {(recordingDuration % 60).toString().padStart(2, '0')} / 5:00
+            {(recordingDuration % 60).toString().padStart(2, '0')} / {capMin}:{capSec}
           </span>
         </div>
       </div>
@@ -59,23 +70,15 @@ const RecordingControls: React.FC<Props> = ({
       {/* Progress bar */}
       <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
         <div
-          className={`h-full transition-all duration-1000 ${
-            recordingDuration >= 270
-              ? 'bg-red-500'
-              : recordingDuration >= 240
-              ? 'bg-yellow-500'
-              : 'bg-green-500'
-          }`}
-          style={{ width: `${Math.min((recordingDuration / 300) * 100, 100)}%` }}
+          className={`h-full transition-all duration-1000 ${isRed ? 'bg-red-500' : isYellow ? 'bg-yellow-500' : 'bg-green-500'}`}
+          style={{ width: `${pct}%` }}
         />
       </div>
 
       {/* Warning message */}
       {recordingWarning && (
         <div
-          className={`text-xs text-center font-semibold ${
-            recordingDuration >= 270 ? 'text-red-400 animate-pulse' : 'text-yellow-400'
-          }`}
+          className={`text-xs text-center font-semibold ${isRed ? 'text-red-400 animate-pulse' : 'text-yellow-400'}`}
         >
           {recordingWarning}
         </div>
