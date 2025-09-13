@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { AccountSettings } from '../modules/account/AccountSettings';
 import { SubscriptionManager } from '../modules/account/SubscriptionManager';
 import { PasswordChange } from '../modules/account/PasswordChange';
+import { SwingShopHeader } from '../components/SwingShopHeader';
 
 export function AccountPage() {
   const navigate = useNavigate();
@@ -33,8 +34,22 @@ export function AccountPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <SwingShopHeader 
+        rightContent={
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-600">Welcome, {user.firstName}</span>
+            <button
+              onClick={handleLogout}
+              className="text-sm text-gray-600 hover:text-gray-900"
+            >
+              Sign Out
+            </button>
+          </div>
+        }
+      />
+      
+      <div className="flex-grow max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 w-full">
         <div className="bg-white shadow overflow-hidden sm:rounded-lg">
           <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
             <div>
@@ -45,12 +60,6 @@ export function AccountPage() {
                 Manage your account settings and subscription
               </p>
             </div>
-            <button
-              onClick={handleLogout}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Sign out
-            </button>
           </div>
 
           <div className="border-b border-gray-200">
@@ -102,6 +111,30 @@ export function AccountPage() {
           </p>
         </div>
       </div>
+      
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-12 mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              <img src="/swing-shop-icon.png" alt="Swing Shop" className="w-12 h-12 opacity-50" />
+              <div className="text-center md:text-left">
+                <p className="text-gray-400">© 2024 Swing Shop. All rights reserved.</p>
+                <p className="text-gray-400 text-sm mt-2">The Mechanics, Not the Metal.</p>
+                <p className="text-gray-400 text-sm mt-1">A BatDigest.com Initiative</p>
+              </div>
+            </div>
+            <div className="flex gap-6 flex-wrap">
+              <a href="https://batdigest.com" className="text-gray-400 hover:text-white">BatDigest.com</a>
+              <Link to="/login" className="text-gray-400 hover:text-white">Player Login</Link>
+              <Link to="/coach/login" className="text-gray-400 hover:text-white">Coach Login</Link>
+              <Link to="/" className="text-gray-400 hover:text-white">Home</Link>
+              <Link to="/privacy" className="text-gray-400 hover:text-white">Privacy</Link>
+              <Link to="/support" className="text-gray-400 hover:text-white">Support</Link>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
