@@ -4,7 +4,6 @@ import { useAuthStore } from '../stores/authStore';
 import { AccountSettings } from '../modules/account/AccountSettings';
 import { SubscriptionManager } from '../modules/account/SubscriptionManager';
 import { PasswordChange } from '../modules/account/PasswordChange';
-import { SwingShopHeader } from '../components/SwingShopHeader';
 
 export function AccountPage() {
   const navigate = useNavigate();
@@ -33,21 +32,100 @@ export function AccountPage() {
     navigate('/login');
   };
 
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <SwingShopHeader 
-        rightContent={
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">Welcome, {user.firstName}</span>
+      {/* Gradient Background for Nav */}
+      <div className="bg-gradient-to-br from-slate-900 via-teal-800 to-teal-600">
+        {/* Navigation */}
+        <nav className="relative z-50 bg-transparent">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-6">
+              <Link to="/" className="flex items-center gap-3">
+                <img 
+                  src="/swing-shop-icon.png" 
+                  alt="Swing Shop" 
+                  className="w-8 h-8 md:w-10 md:h-10 object-contain"
+                />
+                <span className="text-xl md:text-2xl font-bold text-white">Swing Shop</span>
+              </Link>
+              
+              {/* Desktop Navigation */}
+              <div className="hidden md:flex items-center space-x-4 md:space-x-6">
+                <span className="text-white text-sm md:text-base">Welcome, {user.firstName}</span>
+                <a href="https://batdigest.com" className="text-white hover:text-cyan-300 text-sm md:text-base">
+                  BatDigest
+                </a>
+                <button
+                  onClick={handleLogout}
+                  className="bg-cyan-500 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-cyan-600 text-sm md:text-base"
+                >
+                  Sign Out
+                </button>
+              </div>
+
+              {/* Mobile Hamburger Button */}
+              <button
+                className="md:hidden text-white p-2"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                aria-label="Toggle menu"
+              >
+                {isMobileMenuOpen ? (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+        </nav>
+      </div>
+
+      {/* Mobile Menu Slide-out */}
+      <div className={`fixed top-0 right-0 h-full w-64 bg-slate-900 transform transition-transform duration-300 ease-in-out z-50 ${
+        isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+      } md:hidden`}>
+        <div className="p-6">
+          <button
+            className="absolute top-6 right-6 text-white"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          
+          <div className="mt-16 flex flex-col space-y-6">
+            <span className="text-white text-lg">Welcome, {user.firstName}</span>
+            <a 
+              href="https://batdigest.com" 
+              className="text-white text-lg hover:text-cyan-300 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              BatDigest
+            </a>
             <button
-              onClick={handleLogout}
-              className="text-sm text-gray-600 hover:text-gray-900"
+              onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
+              className="bg-cyan-500 text-white px-6 py-3 rounded-lg hover:bg-cyan-600 text-center font-semibold"
             >
               Sign Out
             </button>
           </div>
-        }
-      />
+        </div>
+      </div>
+
+      {/* Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
       
       <div className="flex-grow max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 w-full">
         <div className="bg-white shadow overflow-hidden sm:rounded-lg">

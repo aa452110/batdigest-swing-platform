@@ -1,19 +1,125 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { SwingShopHeader } from '../components/SwingShopHeader';
 
 export const SupportPage: React.FC = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <SwingShopHeader isDark />
+      {/* Gradient Background for Nav */}
+      <div className="bg-gradient-to-br from-slate-900 via-teal-800 to-teal-600">
+        {/* Navigation */}
+        <nav className="relative z-50 bg-transparent">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-6">
+              <Link to="/" className="flex items-center gap-3">
+                <img 
+                  src="/swing-shop-icon.png" 
+                  alt="Swing Shop" 
+                  className="w-8 h-8 md:w-10 md:h-10 object-contain"
+                />
+                <span className="text-xl md:text-2xl font-bold text-white">Swing Shop</span>
+              </Link>
+              
+              {/* Desktop Navigation */}
+              <div className="hidden md:flex items-center space-x-4 md:space-x-6">
+                <a href="https://batdigest.com" className="text-white hover:text-cyan-300 text-sm md:text-base">
+                  BatDigest
+                </a>
+                <Link to="/login" className="text-white hover:text-cyan-300 text-sm md:text-base">
+                  Player Login
+                </Link>
+                <Link to="/coach/login" className="text-white hover:text-cyan-300 text-sm md:text-base">
+                  Coach Login
+                </Link>
+                <a href="/#pricing" className="bg-cyan-500 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-cyan-600 text-sm md:text-base">
+                  Sign Up
+                </a>
+              </div>
 
-      {/* Hero */}
-      <section className="bg-gradient-to-br from-slate-900 via-teal-800 to-teal-600 text-white py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-extrabold mb-3">Support</h1>
-          <p className="text-lg text-teal-100">We’re here to help. Reach out anytime.</p>
+              {/* Mobile Hamburger Button */}
+              <button
+                className="md:hidden text-white p-2"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                aria-label="Toggle menu"
+              >
+                {isMobileMenuOpen ? (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        {/* Hero - now inside the same gradient background */}
+        <section className="text-white py-16">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 className="text-4xl font-extrabold mb-3">Support</h1>
+            <p className="text-lg text-teal-100">We're here to help. Reach out anytime.</p>
+          </div>
+        </section>
+      </div>
+
+      {/* Mobile Menu Slide-out */}
+      <div className={`fixed top-0 right-0 h-full w-64 bg-slate-900 transform transition-transform duration-300 ease-in-out z-50 ${
+        isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+      } md:hidden`}>
+        <div className="p-6">
+          <button
+            className="absolute top-6 right-6 text-white"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          
+          <div className="mt-16 flex flex-col space-y-6">
+            <a 
+              href="https://batdigest.com" 
+              className="text-white text-lg hover:text-cyan-300 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              BatDigest
+            </a>
+            <Link 
+              to="/login" 
+              className="text-white text-lg hover:text-cyan-300 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Player Login
+            </Link>
+            <Link 
+              to="/coach/login" 
+              className="text-white text-lg hover:text-cyan-300 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Coach Login
+            </Link>
+            <a 
+              href="/#pricing" 
+              className="bg-cyan-500 text-white px-6 py-3 rounded-lg hover:bg-cyan-600 text-center font-semibold"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Sign Up
+            </a>
+          </div>
         </div>
-      </section>
+      </div>
+
+      {/* Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
 
       {/* Content */}
       <main className="flex-1">
