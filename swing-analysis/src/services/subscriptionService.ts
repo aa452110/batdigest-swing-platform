@@ -170,17 +170,11 @@ export function getSubscriptionStatusText(
  * Build checkout URL for prorated upgrades
  */
 export function buildCheckoutUrl(checkoutData: any): string {
-  // For now, use the React checkout page
-  // When Stripe is ready, change this to redirect to your Flask checkout:
-  // return `http://localhost:5003/checkout/swing?plan=${checkoutData.newPlan}&upgrade=true&credit=${checkoutData.credit}&amount=${checkoutData.amount}`;
-  
+  // Use the Stripe checkout page with the new plan
   const params = new URLSearchParams({
     plan: checkoutData.newPlan,
-    amount: checkoutData.amount.toString(),
-    credit: checkoutData.credit?.toString() || '0',
-    description: checkoutData.description,
-    type: 'upgrade',
   });
   
-  return `/checkout?${params.toString()}`;
+  // Redirect to the Stripe checkout page
+  return `/stripe-checkout?${params.toString()}`;
 }

@@ -19,21 +19,21 @@ const PLANS = [
   {
     id: 'starter',
     name: 'Starter',
-    price: '$20/mo',
-    features: ['1 analysis per month', 'Pro coach feedback', 'Frame-by-frame analysis', 'Progress tracking', 'iOS app access'],
+    price: '$25/mo',
+    features: ['2 analyses per month', 'Pro coach feedback', 'Frame-by-frame analysis', 'Progress tracking', 'iOS app access'],
   },
   {
     id: 'performance',
     name: 'Performance',
-    price: '$40/mo',
+    price: '$45/mo',
     features: ['4 analyses per month', 'Pro coach feedback', 'Frame-by-frame analysis', 'Progress tracking', 'iOS app access', 'Priority support'],
     popular: true,
   },
   {
     id: 'sixmonth',
     name: '6-Month Performance',
-    price: '$200/6 months',
-    features: ['4 analyses per month', '24 total analyses', 'Pro coach feedback', 'Frame-by-frame analysis', 'Progress tracking', 'iOS app access', 'Priority support', 'Save $40 vs monthly'],
+    price: '$249',
+    features: ['4 analyses per month', '24 total analyses', 'Pro coach feedback', 'Frame-by-frame analysis', 'Progress tracking', 'iOS app access', 'Priority support', 'Save vs monthly'],
   },
 ];
 
@@ -81,6 +81,41 @@ export function SubscriptionManager({ user, token }: SubscriptionManagerProps) {
   };
 
   const handlePlanChange = async () => {
+    // For users with Stripe subscriptions, redirect to Stripe Customer Portal
+    if (user.stripeCustomerId) {
+      setIsChanging(true);
+      setError('');
+      
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:8787'}/api/stripe/create-portal`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            customerId: user.stripeCustomerId,
+          }),
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.portalUrl) {
+          // Redirect to Stripe Customer Portal
+          window.location.href = data.portalUrl;
+        } else {
+          setError('Failed to open subscription management portal');
+          setIsChanging(false);
+        }
+      } catch (error) {
+        console.error('Portal error:', error);
+        setError('Failed to open subscription management portal');
+        setIsChanging(false);
+      }
+      return;
+    }
+    
+    // Fallback for users without Stripe (shouldn't happen in production)
     if (!token || selectedPlan === user.planType) {
       setError('Please select a different plan');
       return;
@@ -90,22 +125,8 @@ export function SubscriptionManager({ user, token }: SubscriptionManagerProps) {
     setError('');
     setSuccess('');
 
-    const result = await changeSubscriptionPlan(selectedPlan, token);
-
-    if (result.success) {
-      if (result.checkoutData?.type === 'upgrade') {
-        // Redirect to checkout for upgrades
-        window.location.href = buildCheckoutUrl(result.checkoutData);
-      } else {
-        // Show success for downgrades
-        setSuccess(result.message || 'Plan updated successfully');
-        const updatedUser = { ...user, planType: selectedPlan };
-        localStorage.setItem('user_data', JSON.stringify(updatedUser));
-      }
-    } else {
-      setError(result.error || 'Failed to update subscription');
-    }
-
+    // For new subscriptions, redirect to checkout
+    window.location.href = `/stripe-checkout?plan=${selectedPlan}`;
     setIsChanging(false);
   };
 
@@ -186,75 +207,74 @@ export function SubscriptionManager({ user, token }: SubscriptionManagerProps) {
         </div>
       </div>
 
-      {/* Available Plans */}
-      <div className="space-y-4">
-        <h4 className="text-sm font-medium text-gray-900">Available Plans</h4>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {PLANS.map((plan) => (
-            <div
-              key={plan.id}
-              className={`relative rounded-lg border p-4 cursor-pointer ${
-                selectedPlan === plan.id
-                  ? 'border-indigo-500 bg-indigo-50'
-                  : 'border-gray-300 bg-white'
-              }`}
-              onClick={() => setSelectedPlan(plan.id)}
-            >
-              {user.planType === plan.id && (
-                <span className="absolute -top-2 -right-2 bg-indigo-600 text-white text-xs px-2 py-1 rounded">
-                  Current
-                </span>
-              )}
-              {plan.popular && user.planType !== plan.id && (
-                <span className="absolute -top-2 -left-2 bg-green-600 text-white text-xs px-2 py-1 rounded">
-                  Most Popular
-                </span>
-              )}
-              <h5 className="text-lg font-medium text-gray-900">{plan.name}</h5>
-              <p className="mt-1 text-sm text-gray-500">{plan.price}</p>
-              <ul className="mt-3 space-y-2">
-                {plan.features.map((feature, idx) => (
-                  <li key={idx} className="text-sm text-gray-600 flex items-start">
-                    <svg className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+      {/* Subscription Management */}
+      {user.stripeCustomerId ? (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h4 className="text-sm font-medium text-gray-900 mb-2">Manage Your Subscription</h4>
+          <p className="text-sm text-gray-600 mb-4">
+            You can change plans, update payment methods, or view billing history through our secure billing portal.
+          </p>
+          <button
+            onClick={handlePlanChange}
+            disabled={isChanging}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+          >
+            {isChanging ? 'Opening Portal...' : 'Manage Subscription'}
+          </button>
         </div>
-      </div>
+      ) : (
+        /* Show plan options for users without Stripe subscription */
+        <div className="space-y-4">
+          <h4 className="text-sm font-medium text-gray-900">Upgrade Your Plan</h4>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {PLANS.filter(p => p.id !== user.planType).map((plan) => (
+              <div
+                key={plan.id}
+                className="relative rounded-lg border border-gray-300 bg-white p-4"
+              >
+                {plan.popular && (
+                  <span className="absolute -top-2 -left-2 bg-green-600 text-white text-xs px-2 py-1 rounded">
+                    Most Popular
+                  </span>
+                )}
+                <h5 className="text-lg font-medium text-gray-900">{plan.name}</h5>
+                <p className="mt-1 text-sm text-gray-500">{plan.price}</p>
+                <ul className="mt-3 space-y-2">
+                  {plan.features.slice(0, 3).map((feature, idx) => (
+                    <li key={idx} className="text-sm text-gray-600 flex items-start">
+                      <svg className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={() => {
+                    setSelectedPlan(plan.id);
+                    handlePlanChange();
+                  }}
+                  className="mt-4 w-full bg-indigo-600 text-white text-sm py-2 px-4 rounded hover:bg-indigo-700"
+                >
+                  Upgrade to {plan.name}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-      {/* Proration Display */}
-      <ProrationDisplay
-        proration={proration}
-        loading={loadingProration}
-        currentPlan={user.planType}
-        newPlan={selectedPlan}
-      />
-
-      {/* Action Buttons */}
-      <div className="flex justify-between items-center pt-4 border-t">
-        <button
-          onClick={() => setShowCancelConfirm(true)}
-          className="text-sm text-red-600 hover:text-red-500"
-          disabled={user.subscriptionStatus === 'cancelled'}
-        >
-          {user.subscriptionStatus === 'cancelled' ? 'Subscription already cancelled' : 'Cancel subscription'}
-        </button>
-
-        <button
-          onClick={handlePlanChange}
-          disabled={isChanging || selectedPlan === user.planType || loadingProration}
-          className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isChanging ? 'Processing...' : 
-           proration?.isUpgrade ? `Upgrade Now - Pay $${proration.proration?.prorated.toFixed(2)}` : 
-           'Change plan'}
-        </button>
-      </div>
+      {/* Cancel Subscription */}
+      {user.subscriptionStatus === 'active' && (
+        <div className="pt-4 border-t">
+          <button
+            onClick={() => setShowCancelConfirm(true)}
+            className="text-sm text-red-600 hover:text-red-500"
+          >
+            Cancel subscription
+          </button>
+        </div>
+      )}
 
       {/* Cancel Confirmation Modal */}
       {showCancelConfirm && (
