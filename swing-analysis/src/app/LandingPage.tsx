@@ -32,7 +32,7 @@ const PLANS: Plan[] = [
     name: '6-Month Performance',
     price: '$249',
     period: '/6 months',
-    features: ['24 analyses total', 'Save $40 vs monthly', '≈ 50% the price of a new bat']
+    features: ['24 analyses total', 'Save $21 vs monthly', '≈ 50% the price of a new bat']
   }
 ];
 

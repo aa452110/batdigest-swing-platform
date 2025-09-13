@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { LandingPage } from './app/LandingPage';
 import { LoginPage } from './app/LoginPage';
 import { CheckoutPage } from './app/CheckoutPage';
+import { StripeCheckoutPage } from './app/StripeCheckoutPage';
 import { SuccessPage } from './app/SuccessPage';
 import { ForgotPasswordPage } from './app/ForgotPasswordPage';
 import { ResetPasswordPage } from './app/ResetPasswordPage';
@@ -41,7 +42,8 @@ function App() {
         {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/checkout-old" element={<CheckoutPage />} />
+        <Route path="/checkout" element={<StripeCheckoutPage />} />
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />

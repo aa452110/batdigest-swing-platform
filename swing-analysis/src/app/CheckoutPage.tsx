@@ -4,8 +4,8 @@ import { useAuthStore } from '../stores/authStore';
 
 const PLAN_DETAILS: Record<string, { name: string; price: number; period: string }> = {
   starter: { name: 'Starter', price: 25, period: '/month' },
-  performance: { name: 'Performance', price: 40, period: '/month' },
-  sixmonth: { name: '6-Month Performance', price: 200, period: '/6 months' },
+  performance: { name: 'Performance', price: 45, period: '/month' },
+  sixmonth: { name: '6-Month Performance', price: 249, period: '/6 months' },
 };
 
 export function CheckoutPage() {
