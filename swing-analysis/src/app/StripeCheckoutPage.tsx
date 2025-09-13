@@ -224,7 +224,7 @@ export function StripeCheckoutPage() {
         
         {/* Footer */}
         <div className="mt-4 text-center text-sm text-gray-500">
-          <p>Questions? Email us at support@swingshop.com</p>
+          <p>Questions? Email us at admin@batdigest.com</p>
         </div>
       </div>
     </div>
