@@ -22,6 +22,8 @@ export function StripeCheckoutPage() {
   
   const [processing, setProcessing] = useState(false);
   const [email, setEmail] = useState(user?.email || '');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -36,6 +38,11 @@ export function StripeCheckoutPage() {
   const handleStripeCheckout = async () => {
     if (!email) {
       setError('Please enter your email address');
+      return;
+    }
+    
+    if (!firstName || !lastName) {
+      setError('Please enter your full name');
       return;
     }
     
@@ -63,6 +70,8 @@ export function StripeCheckoutPage() {
           },
           body: JSON.stringify({
             email,
+            firstName,
+            lastName,
             password,
             planId,
           }),
@@ -135,6 +144,38 @@ export function StripeCheckoutPage() {
             <div className="mb-6 space-y-4">
               <h3 className="text-lg font-semibold text-gray-900">Create Your Account</h3>
               
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    id="firstName"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="John"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                    disabled={processing}
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    id="lastName"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Doe"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                    disabled={processing}
+                  />
+                </div>
+              </div>
+              
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                   Email Address
@@ -159,7 +200,7 @@ export function StripeCheckoutPage() {
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Create a password"
+                  placeholder="Create a password (min 8 characters)"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
                   disabled={processing}
                 />
