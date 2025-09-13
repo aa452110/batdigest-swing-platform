@@ -1,9 +1,53 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 export function SuccessPage() {
   const [searchParams] = useSearchParams();
-  const planType = searchParams.get('plan') || 'performance';
+  const [verifying, setVerifying] = useState(true);
+  const [verificationError, setVerificationError] = useState('');
+  const [planType, setPlanType] = useState(searchParams.get('plan') || 'performance');
+  const sessionId = searchParams.get('session_id');
+  
+  useEffect(() => {
+    // Verify the Stripe session and activate account
+    const verifySession = async () => {
+      if (!sessionId) {
+        setVerifying(false);
+        return;
+      }
+      
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_BASE || 'http://localhost:8787'}/api/stripe/verify-session`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ sessionId }),
+          }
+        );
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          // Update plan type if returned from verification
+          if (data.planId) {
+            setPlanType(data.planId);
+          }
+        } else {
+          setVerificationError(data.error || 'Failed to verify payment');
+        }
+      } catch (error) {
+        console.error('Verification error:', error);
+        setVerificationError('Failed to verify payment. Please contact support.');
+      } finally {
+        setVerifying(false);
+      }
+    };
+    
+    verifySession();
+  }, [sessionId]);
   
   const planNames: Record<string, string> = {
     starter: 'Starter',
@@ -15,8 +59,26 @@ export function SuccessPage() {
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-cyan-50 flex items-center justify-center px-4">
       <div className="max-w-2xl w-full">
         <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
-          {/* Success Icon */}
-          <div className="flex justify-center mb-6">
+          {verifying ? (
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mb-4"></div>
+              <p className="text-gray-600">Verifying your payment...</p>
+            </div>
+          ) : verificationError ? (
+            <div className="text-center py-8">
+              <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Payment Verification Failed</h2>
+              <p className="text-gray-600 mb-4">{verificationError}</p>
+              <p className="text-sm text-gray-500">Please contact support at admin@batdigest.com</p>
+            </div>
+          ) : (
+          <>
+            {/* Success Icon */}
+            <div className="flex justify-center mb-6">
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
               <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
@@ -114,6 +176,8 @@ export function SuccessPage() {
             </Link>
             {' '}page.
           </p>
+          </>
+          )}
         </div>
       </div>
     </div>
