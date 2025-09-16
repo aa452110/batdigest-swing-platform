@@ -34,10 +34,12 @@ import SupportPage from './app/SupportPage';
 
 // Auth components
 import { AdminAuth } from './components/AdminAuth';
+import { LimitedSignupBanner } from './components/LimitedSignupBanner';
 
 function App() {
   return (
     <Router>
+      <LimitedSignupBanner />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
