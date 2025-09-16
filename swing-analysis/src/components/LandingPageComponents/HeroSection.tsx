@@ -70,10 +70,18 @@ const HeroSection: React.FC<HeroSectionProps> = ({ audience, setAudience }) => {
           </div>
 
           <div className="bg-white rounded-xl p-5 shadow-2xl">
-            <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-              <div className="w-20 h-20 bg-cyan-500 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
-                <div className="w-0 h-0 border-l-[25px] border-l-white border-t-[15px] border-t-transparent border-b-[15px] border-b-transparent ml-2" />
-              </div>
+            <div className="aspect-video rounded-lg overflow-hidden">
+              <img
+                src="/swing_analysis_feature_image.png"
+                onError={(e) => {
+                  const img = e.currentTarget as HTMLImageElement;
+                  if (img.src.indexOf('/public/swing_analysis_feature_image.png') === -1) {
+                    img.src = '/public/swing_analysis_feature_image.png';
+                  }
+                }}
+                alt="Swing Analysis Feature"
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
         </div>
