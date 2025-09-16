@@ -2,38 +2,14 @@ import React, { useEffect, useState } from 'react';
 
 export const LimitedSignupBanner: React.FC = () => {
   const [isVisible, setIsVisible] = useState(true);
-  const [spotsRemaining, setSpotsRemaining] = useState<number | null>(null);
 
   useEffect(() => {
     // Check if banner was dismissed in this session
     const dismissed = sessionStorage.getItem('signupBannerDismissed');
     if (dismissed) {
       setIsVisible(false);
-      return;
     }
-
-    // Fetch signup status
-    fetchSignupStatus();
   }, []);
-
-  const fetchSignupStatus = async () => {
-    try {
-      const response = await fetch('https://swing-platform.brianduryea.workers.dev/api/signup-status');
-      const data = await response.json();
-      
-      if (data.success && data.signupLimitActive) {
-        setSpotsRemaining(data.spotsRemaining);
-        // Only show banner if there are limited spots
-        if (data.spotsRemaining <= 0) {
-          setIsVisible(false);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to fetch signup status:', error);
-      // Default to showing with calculated percentage
-      setSpotsRemaining(15); // 5 taken out of 20 = 27% (rounding up from 25%)
-    }
-  };
 
   const handleDismiss = () => {
     setIsVisible(false);
@@ -42,10 +18,9 @@ export const LimitedSignupBanner: React.FC = () => {
 
   if (!isVisible) return null;
 
-  // Calculate percentage (default to 27% if no data)
-  const totalSpots = 20;
-  const spotsTaken = totalSpots - (spotsRemaining ?? 15);
-  const percentage = Math.round((spotsTaken / totalSpots) * 100);
+  // Static 25% for now - can update manually
+  const percentage = 25;
+  const spotsRemaining = 15;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-red-600 to-orange-500 text-white shadow-lg">
@@ -64,11 +39,9 @@ export const LimitedSignupBanner: React.FC = () => {
             <div className="flex items-center space-x-2">
               <span className="text-sm md:text-base">
                 <span className="font-bold">{percentage}% subscribed</span>
-                {spotsRemaining !== null && (
-                  <span className="ml-2 text-white/90">
-                    • Only {spotsRemaining} spots remaining
-                  </span>
-                )}
+                <span className="ml-2 text-white/90">
+                  • Only {spotsRemaining} spots remaining
+                </span>
               </span>
             </div>
           </div>
