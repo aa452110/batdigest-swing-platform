@@ -75,8 +75,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({ audience, setAudience }) => {
                 src="/swing_analysis_feature_image.png"
                 onError={(e) => {
                   const img = e.currentTarget as HTMLImageElement;
-                  if (img.src.indexOf('/public/swing_analysis_feature_image.png') === -1) {
+                  const triedPublic = img.getAttribute('data-tried-public') === '1';
+                  const triedFallback = img.getAttribute('data-tried-fallback') === '1';
+                  if (!triedPublic) {
+                    img.setAttribute('data-tried-public', '1');
                     img.src = '/public/swing_analysis_feature_image.png';
+                  } else if (!triedFallback) {
+                    img.setAttribute('data-tried-fallback', '1');
+                    img.src = '/swing-shop-icon.png';
                   }
                 }}
                 alt="Swing Analysis Feature"
