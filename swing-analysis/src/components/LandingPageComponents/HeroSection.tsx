@@ -72,19 +72,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ audience, setAudience }) => {
           <div className="bg-white rounded-xl p-5 shadow-2xl">
             <div className="aspect-video rounded-lg overflow-hidden">
               <img
-                src="/swing_analysis_feature_image.png"
-                onError={(e) => {
-                  const img = e.currentTarget as HTMLImageElement;
-                  const triedPublic = img.getAttribute('data-tried-public') === '1';
-                  const triedFallback = img.getAttribute('data-tried-fallback') === '1';
-                  if (!triedPublic) {
-                    img.setAttribute('data-tried-public', '1');
-                    img.src = '/public/swing_analysis_feature_image.png';
-                  } else if (!triedFallback) {
-                    img.setAttribute('data-tried-fallback', '1');
-                    img.src = '/swing-shop-icon.png';
-                  }
-                }}
+                src="/public/swing_analysis_feature_image.png"
                 alt="Swing Analysis Feature"
                 className="w-full h-full object-cover"
               />
