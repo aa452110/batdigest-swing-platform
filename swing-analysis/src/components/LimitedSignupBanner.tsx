@@ -31,7 +31,7 @@ export const LimitedSignupBanner: React.FC = () => {
     } catch (error) {
       console.error('Failed to fetch signup status:', error);
       // Default to showing with calculated percentage
-      setSpotsRemaining(7); // 13 taken out of 20 = 65%
+      setSpotsRemaining(15); // 5 taken out of 20 = 27% (rounding up from 25%)
     }
   };
 
@@ -42,13 +42,13 @@ export const LimitedSignupBanner: React.FC = () => {
 
   if (!isVisible) return null;
 
-  // Calculate percentage (default to 65% if no data)
+  // Calculate percentage (default to 27% if no data)
   const totalSpots = 20;
-  const spotsTaken = totalSpots - (spotsRemaining ?? 7);
+  const spotsTaken = totalSpots - (spotsRemaining ?? 15);
   const percentage = Math.round((spotsTaken / totalSpots) * 100);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-red-600 to-orange-500 text-white shadow-lg">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-red-600 to-orange-500 text-white shadow-lg">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -75,7 +75,7 @@ export const LimitedSignupBanner: React.FC = () => {
           
           <div className="flex items-center space-x-3">
             <a 
-              href="/checkout" 
+              href="/#pricing" 
               className="hidden sm:inline-block bg-white text-red-600 px-4 py-1.5 rounded-full font-semibold text-sm hover:bg-gray-100 transition-colors"
             >
               Claim Your Spot
