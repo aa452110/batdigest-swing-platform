@@ -71,10 +71,15 @@ const HeroSection: React.FC<HeroSectionProps> = ({ audience, setAudience }) => {
 
           <div className="bg-white rounded-xl p-5 shadow-2xl">
             <div className="aspect-video rounded-lg overflow-hidden">
-              <img
-                src="/public/swing_analysis_feature_image.png"
-                alt="Swing Analysis Feature"
+              <video
+                src="/swing_analysis_hero.mp4"
+                poster="/swing_analysis_feature_image.png"
                 className="w-full h-full object-cover"
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
               />
             </div>
           </div>
