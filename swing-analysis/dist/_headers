@@ -1,0 +1,6 @@
+/admin/*
+  Content-Security-Policy: script-src 'self' 'wasm-unsafe-eval' 'inline-speculation-rules' https: chrome-extension://aelnakmjgbblodnpmilejddkpolloopd/; worker-src 'self' blob:; media-src 'self' blob: https:; img-src 'self' data: blob: https:; connect-src 'self' https://swing-platform.brianduryea.workers.dev https://*.batdigest.com data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'
+
+/coach/*
+  Content-Security-Policy: script-src 'self' 'wasm-unsafe-eval' 'inline-speculation-rules' https: chrome-extension://aelnakmjgbblodnpmilejddkpolloopd/; worker-src 'self' blob:; media-src 'self' blob: https:; img-src 'self' data: blob: https:; connect-src 'self' https://swing-platform.brianduryea.workers.dev https://*.batdigest.com data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'
+
