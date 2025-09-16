@@ -58,8 +58,10 @@ const SplitVideoView: React.FC<SplitVideoViewProps> = ({
 
   const handleVideo1FrameStep = (direction: 1 | -1) => {
     if (!viewport1Ref.current) return;
-    const newTime = video1State.currentTime + (direction / 30); // Assuming 30fps
+    const newTime = Math.max(0, video1State.currentTime + (direction / 30)); // Assuming 30fps
     viewport1Ref.current.seekTo(newTime);
+    // Update state immediately so UI reflects the change when paused
+    setVideo1State(prev => ({ ...prev, currentTime: newTime }));
   };
 
   const handleVideo1Seek = (time: number) => {
@@ -82,8 +84,10 @@ const SplitVideoView: React.FC<SplitVideoViewProps> = ({
 
   const handleVideo2FrameStep = (direction: 1 | -1) => {
     if (!viewport2Ref.current) return;
-    const newTime = video2State.currentTime + (direction / 30); // Assuming 30fps
+    const newTime = Math.max(0, video2State.currentTime + (direction / 30)); // Assuming 30fps
     viewport2Ref.current.seekTo(newTime);
+    // Update state immediately so UI reflects the change when paused
+    setVideo2State(prev => ({ ...prev, currentTime: newTime }));
   };
 
   const handleVideo2Seek = (time: number) => {
