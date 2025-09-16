@@ -404,7 +404,6 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
                     const mp4Blob: Blob = await transcodeWebMToMP4(previewSegment!.blob, (progress) => {
                       setTranscodeProgress(progress);
                     });
-                    setTranscodeProgress(100);
                     const mp4Url = URL.createObjectURL(mp4Blob);
                     const updated = { ...previewSegment!, blob: mp4Blob, url: mp4Url };
                     setPreviewSegment(updated);

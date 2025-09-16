@@ -46,7 +46,8 @@ export async function transcodeWebMToMP4(
     // Set progress callback
     if (onProgress) {
       ffmpegInstance.on('progress', ({ progress }) => {
-        const percentage = Math.round(progress * 100);
+        // Cap progress at 0-100% (FFmpeg sometimes reports > 1.0 for WebM files)
+        const percentage = Math.min(99, Math.max(0, Math.round(progress * 100)));
         console.log(`[MP4Transcode] Progress: ${percentage}%`);
         onProgress(percentage);
       });
@@ -80,6 +81,11 @@ export async function transcodeWebMToMP4(
     const mp4Blob = new Blob([data], { type: 'video/mp4' });
     
     console.log('[MP4Transcode] Output MP4 size:', mp4Blob.size);
+    
+    // Set progress to 100% when complete
+    if (onProgress) {
+      onProgress(100);
+    }
     
     // Clean up
     try {
