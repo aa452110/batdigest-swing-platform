@@ -103,7 +103,7 @@ export function useUpload(onAnalysisSaved?: () => void) {
       const responseText = await response.text();
       console.log('[UPLOAD DEBUG] Response text:', responseText);
       
-      let uploadResponse;
+      let uploadResponse: any;
       try {
         uploadResponse = JSON.parse(responseText);
       } catch (e) {
@@ -112,7 +112,16 @@ export function useUpload(onAnalysisSaved?: () => void) {
         throw new Error(`Server returned non-JSON response: ${responseText.substring(0, 200)}`);
       }
 
-      const { uploadUrl } = uploadResponse;
+      // Validate server response before proceeding
+      if (!response.ok || uploadResponse?.success === false) {
+        const serverError = uploadResponse?.error || `HTTP ${response.status}`;
+        throw new Error(`Upload URL request failed: ${serverError}`);
+      }
+
+      const { uploadUrl } = uploadResponse || {};
+      if (!uploadUrl || typeof uploadUrl !== 'string') {
+        throw new Error('Upload URL not provided by server');
+      }
       setUploadStatus('⏳ Uploading video... 0%');
 
       // Use the compressed/transcoded video
