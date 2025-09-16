@@ -35,7 +35,8 @@ async function loadFFmpeg(): Promise<FFmpeg> {
 
 export async function transcodeWebMToMP4(
   webmBlob: Blob,
-  onProgress?: (progress: number) => void
+  onProgress?: (progress: number) => void,
+  onFrameCount?: (frames: number) => void
 ): Promise<Blob> {
   try {
     console.log('[MP4Transcode] Starting transcode, input size:', webmBlob.size);
@@ -44,12 +45,20 @@ export async function transcodeWebMToMP4(
     const ffmpegInstance = await loadFFmpeg();
     
     // Set progress callback
-    if (onProgress) {
-      ffmpegInstance.on('progress', ({ progress }) => {
-        // Cap progress at 0-100% (FFmpeg sometimes reports > 1.0 for WebM files)
-        const percentage = Math.min(99, Math.max(0, Math.round(progress * 100)));
-        console.log(`[MP4Transcode] Progress: ${percentage}%`);
-        onProgress(percentage);
+    if (onProgress || onFrameCount) {
+      ffmpegInstance.on('progress', ({ progress, time }) => {
+        // Report frame count if callback provided
+        if (onFrameCount && time !== undefined) {
+          // Assuming 30fps as a rough estimate
+          const frames = Math.floor(time / 1000 * 30);
+          onFrameCount(frames);
+        }
+        
+        // Still report percentage if needed (capped)
+        if (onProgress) {
+          const percentage = Math.min(99, Math.max(0, Math.round(progress * 100)));
+          onProgress(percentage);
+        }
       });
     }
     

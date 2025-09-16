@@ -400,10 +400,15 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
                     setTranscodeStatus('Initializing…');
                     // Use the R2-based FFmpeg for transcoding
                     const { transcodeWebMToMP4 } = await import('./recordingFunctions/mp4Transcode');
-                    setTranscodeStatus('Transcoding via FFmpeg…');
-                    const mp4Blob: Blob = await transcodeWebMToMP4(previewSegment!.blob, (progress) => {
-                      setTranscodeProgress(progress);
-                    });
+                    let frameCount = 0;
+                    const mp4Blob: Blob = await transcodeWebMToMP4(
+                      previewSegment!.blob, 
+                      undefined, // No percentage callback
+                      (frames) => {
+                        frameCount = frames;
+                        setTranscodeStatus(`Processing... ${frames} frames`);
+                      }
+                    );
                     const mp4Url = URL.createObjectURL(mp4Blob);
                     const updated = { ...previewSegment!, blob: mp4Blob, url: mp4Url };
                     setPreviewSegment(updated);
@@ -419,7 +424,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
                 disabled={isTranscoding || isUploading}
                 className={`px-3 py-1 ${isTranscoding ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded transition-colors`}
               >
-                {isTranscoding ? `Transcoding… ${transcodeProgress}%` : 'Transcode to MP4 (H.264/AAC)'}
+                {isTranscoding ? 'Transcoding...' : 'Transcode to MP4 (H.264/AAC)'}
               </button>
               <button
                 onClick={() => {
