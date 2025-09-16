@@ -11,6 +11,7 @@ interface SplitVideoViewProps {
   viewport2Ref: React.RefObject<VideoViewportRef>;
   onVideo1StateChange: (state: any) => void;
   onVideo2StateChange: (state: any) => void;
+  onSetActiveVideo?: (videoId: 1 | 2) => void;
 }
 
 const SplitVideoView: React.FC<SplitVideoViewProps> = ({ 
@@ -21,7 +22,8 @@ const SplitVideoView: React.FC<SplitVideoViewProps> = ({
   viewport1Ref, 
   viewport2Ref, 
   onVideo1StateChange, 
-  onVideo2StateChange 
+  onVideo2StateChange,
+  onSetActiveVideo,
 }) => {
   // Independent states for each video
   const [video1State, setVideo1State] = useState({
@@ -122,6 +124,7 @@ const SplitVideoView: React.FC<SplitVideoViewProps> = ({
             if ((e.target as HTMLElement).tagName !== 'CANVAS') {
               viewport1Ref.current?.container?.focus();
             }
+            onSetActiveVideo && onSetActiveVideo(1);
           }}
         >
           <div className="absolute top-2 left-2 z-10 bg-black/75 px-2 py-1 rounded text-xs text-white">
@@ -154,6 +157,7 @@ const SplitVideoView: React.FC<SplitVideoViewProps> = ({
             if ((e.target as HTMLElement).tagName !== 'CANVAS') {
               viewport2Ref.current?.container?.focus();
             }
+            onSetActiveVideo && onSetActiveVideo(2);
           }}
         >
           <div className="absolute top-2 left-2 z-10 bg-black/75 px-2 py-1 rounded text-xs text-white">

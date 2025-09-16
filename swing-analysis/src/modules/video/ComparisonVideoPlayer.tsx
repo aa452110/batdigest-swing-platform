@@ -500,6 +500,11 @@ const ComparisonVideoPlayer: React.FC<ComparisonVideoPlayerProps> = ({ className
               viewport2Ref={viewport2Ref}
               onVideo1StateChange={(state) => setVideo1State(state)}
               onVideo2StateChange={(state) => setVideo2State(state)}
+              onSetActiveVideo={(vid) => {
+                setActiveVideo(vid);
+                const meta = vid === 1 ? video1Meta : video2Meta;
+                if (meta) setMetadata(meta);
+              }}
             />
           )}
 
