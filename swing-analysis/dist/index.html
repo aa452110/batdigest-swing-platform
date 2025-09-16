@@ -26,6 +26,10 @@
     <meta name="description" content="Swing Shop | It's the Mechanic, Not the Metal. Professional baseball swing analysis from expert coaches. A BatDigest Initiative." />
     <meta property="og:site_name" content="Swing Shop" />
     <link rel="apple-touch-icon" href="/500-swing-icon.png" />
+    <script>
+      // Force ffmpeg core to load from our Worker (allowed by CSP)
+      window.FFMPEG_CORE_BASE = 'https://swing-platform.brianduryea.workers.dev/api/ffmpeg-core/';
+    </script>
     <script type="module" crossorigin src="/assets/index-8j0Dt5Yw.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-JpBYQYFg.css">
   </head>
