@@ -10,6 +10,50 @@ let ffmpegLoaded = false as boolean;
 let FFmpegCtor: any = null;
 let ffmpegInstance: any = null;
 
+// Helper: simple timeout wrapper for promises
+async function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  let t: number | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    t = window.setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+  });
+  try {
+    return await Promise.race([p, timeout]);
+  } finally {
+    if (t) clearTimeout(t);
+  }
+}
+
+function getSameOriginCoreBase() {
+  // Prefer same-origin proxy to avoid cross-origin worker/cors quirks
+  // Pages Function proxies /api/* to the platform worker
+  return `${location.origin}/api/ffmpeg-core/`;
+}
+
+function getWorkerCoreBase() {
+  // Direct worker URL (kept as fallback)
+  return 'https://swing-platform.brianduryea.workers.dev/api/ffmpeg-core/';
+}
+
+function getCdnCoreBase() {
+  // Official CDN fallback (UMD paths) matching @ffmpeg/core 0.12.x
+  return 'https://unpkg.com/@ffmpeg/core@0.12.9/dist/umd/';
+}
+
+function isLocalhost(): boolean {
+  try {
+    const h = location.hostname;
+    return (
+      h === 'localhost' ||
+      h === '127.0.0.1' ||
+      h === '::1' ||
+      // Common local dev hostnames
+      h.endsWith('.local')
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function isFfmpegLoaded() {
   return ffmpegLoaded;
 }
@@ -17,28 +61,40 @@ export function isFfmpegLoaded() {
 async function ensureFfmpegLoaded() {
   if (ffmpegLoaded) return;
   // Dynamic import to keep initial bundle lean
-  const [{ FFmpeg }, util] = await Promise.all([
+  const [{ FFmpeg }] = await Promise.all([
     import('@ffmpeg/ffmpeg'),
-    import('@ffmpeg/util'),
   ]);
   FFmpegCtor = FFmpeg;
 
-  // Load from CDN to avoid Cloudflare Pages 25MB limit
-  // Use the official dist paths (no umd subfolder)
-  let coreURL: string;
-  let wasmURL: string;
-  let workerURL: string;
-  // Load core via Worker proxy (single-thread core; no worker/COEP required)
-  const proxyBase = 'https://swing-platform.brianduryea.workers.dev/api/ffmpeg-core/';
-  // Pass direct HTTPS URLs so the worker's importScripts grabs script bytes directly
-  coreURL = proxyBase + 'ffmpeg-core.js';
-  wasmURL = proxyBase + 'ffmpeg-core.wasm';
-  workerURL = '';
+  // Choose one source that works: CDN for localhost, Worker for prod
+  const primaryBase = isLocalhost() ? getCdnCoreBase() : getWorkerCoreBase();
+  const fallbackBase = primaryBase === getCdnCoreBase() ? getWorkerCoreBase() : getCdnCoreBase();
 
-  ffmpegInstance = new FFmpegCtor();
-  const loadOpts: any = { coreURL, wasmURL };
-  await ffmpegInstance.load(loadOpts);
-  ffmpegLoaded = true;
+  const tryLoad = async (base: string, timeoutMs: number) => {
+    const coreURL = base + 'ffmpeg-core.js';
+    const wasmURL = base + 'ffmpeg-core.wasm';
+    const inst = new FFmpegCtor();
+    const loadOpts: any = { coreURL, wasmURL };
+    await withTimeout(inst.load(loadOpts), timeoutMs, `FFmpeg load from ${base}`);
+    return inst;
+  };
+
+  try {
+    const inst = await tryLoad(primaryBase, primaryBase === getCdnCoreBase() ? 20000 : 15000);
+    ffmpegInstance = inst;
+    ffmpegLoaded = true;
+    return;
+  } catch (e1) {
+    // Quick fallback to the other source
+    try {
+      const inst = await tryLoad(fallbackBase, fallbackBase === getCdnCoreBase() ? 20000 : 15000);
+      ffmpegInstance = inst;
+      ffmpegLoaded = true;
+      return;
+    } catch (e2) {
+      throw e2 || e1 || new Error('FFmpeg initialization failed');
+    }
+  }
 }
 
 export async function transcodeWebmToMp4(
@@ -94,10 +150,11 @@ export async function transcodeWebmToMp4(
 export async function preloadFfmpeg(onStatus?: FfmpegStatusCb, onDownloadProgress?: (overallPct: number) => void) {
   if (ffmpegLoaded) return;
 
-  const coreBase = 'https://swing-platform.brianduryea.workers.dev/api/ffmpeg-core/';
-  const files = [
-    { url: coreBase + 'ffmpeg-core.js', label: 'core.js' },
-    { url: coreBase + 'ffmpeg-core.wasm', label: 'core.wasm' },
+  // Pin to one working source: CDN for localhost, Worker for prod
+  const base = isLocalhost() ? getCdnCoreBase() : getWorkerCoreBase();
+  let files: { url: string; label: string }[] = [
+    { url: base + 'ffmpeg-core.js', label: 'core.js' },
+    { url: base + 'ffmpeg-core.wasm', label: 'core.wasm' },
   ];
 
   let totalKnown = 0;

@@ -138,23 +138,15 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
     onSegmentReady,
     maxDurationSec: 600,
     getCaptureStream: async () => {
-      // Target the actual video container (1280x720), not the wrapper with controls
       const captureElement = document.getElementById('video-container-actual');
-      
       if (!captureElement) {
         console.error('[SelectableRecorder] ❌ video-container-actual NOT FOUND!');
-        // Don't fall back - just fail
         return null;
       }
-      
       console.log('[SelectableRecorder] ✅ Found video-container-actual element');
-      
-      // REMOVED LOG - console.log('[SelectableRecorder] ✅ Found video-player-scaled element');
-      
-      // LOCK THE COORDINATES NOW - GET THEM FRESH AND NEVER CHANGE THEM
+
+      // Lock coordinates for UI/debug; capture path is via extension
       const rect = captureElement.getBoundingClientRect();
-      
-      // Just use the rect as-is! getBoundingClientRect() already accounts for transforms
       lockedCropRef.current = {
         left: rect.left,
         top: rect.top,
@@ -162,24 +154,17 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
         height: rect.height,
         viewportW: window.innerWidth,
         viewportH: window.innerHeight,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
-      
       console.log(`ELEMENT X,Y: (${rect.left}, ${rect.top})`);
-      
-      // Try extension first if available
+
       const extensionAvailable = await isExtensionAvailable();
-      // REMOVED LOG - console.log('[SelectableRecorder] Extension available:', extensionAvailable);
-      
-      if (extensionAvailable) {
-        // REMOVED LOG - console.log('[SelectableRecorder] Using extension for capture');
-        const stream = await captureWithExtension(captureElement);
-        if (stream) return stream;
+      if (!extensionAvailable) {
+        console.error('[SelectableRecorder] Extension not detected');
+        return null; // do not fall back
       }
-      
-      // Fall back to regular capture
-      // REMOVED LOG - console.log('[SelectableRecorder] Falling back to regular capture');
-      return await captureElementRegion(captureElement, { audio: true });
+      const stream = await captureWithExtension(captureElement);
+      return stream;
     },
   });
 
@@ -216,14 +201,17 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
     let cancelled = false;
     (async () => {
       try {
-        setIsCoreLoading(true);
-        const mod = await import('../../lib/mp4Transcode');
-        if (cancelled) return;
-        if (!mod.isFfmpegLoaded()) {
-          await mod.preloadFfmpeg(
-            (msg) => { if (!cancelled) setCoreStatus(msg); },
-            (pct) => { if (!cancelled) setCorePct(pct); }
-          );
+        const ext = (window as any).SwingCaptureExtension;
+        if (ext?.isInstalled) {
+          if (!cancelled) {
+            setCoreStatus('Ready (Extension)');
+            setCorePct(100);
+          }
+        } else {
+          if (!cancelled) {
+            setCoreStatus('Extension required (Swing Analyzer Screen Capture v2)');
+            setCorePct(0);
+          }
         }
       } catch (e) {
         console.warn('[Analyzer] FFmpeg preload failed:', e);
@@ -410,9 +398,13 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
                     setIsTranscoding(true);
                     setTranscodeProgress(0);
                     setTranscodeStatus('Initializing…');
-                    const { transcodeWebmToMp4 } = await import('../../lib/mp4Transcode');
-                    setTranscodeStatus('Transcoding…');
-                    const mp4Blob = await transcodeWebmToMp4(previewSegment!.blob, (p) => setTranscodeProgress(p));
+                    const ext = (window as any).SwingCaptureExtension;
+                    if (!(ext?.isInstalled && typeof ext.transcodeToMP4 === 'function')) {
+                      throw new Error('Extension not detected. Install/enable Swing Analyzer Screen Capture v2.');
+                    }
+                    setTranscodeStatus('Transcoding via Extension…');
+                    const mp4Blob: Blob = await ext.transcodeToMP4(previewSegment!.blob);
+                    setTranscodeProgress(100);
                     const mp4Url = URL.createObjectURL(mp4Blob);
                     const updated = { ...previewSegment!, blob: mp4Blob, url: mp4Url };
                     setPreviewSegment(updated);

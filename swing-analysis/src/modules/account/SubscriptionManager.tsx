@@ -3,7 +3,6 @@ import { ProrationDisplay } from '../../components/ProrationDisplay';
 import {
   calculateProrationPreview,
   changeSubscriptionPlan,
-  cancelSubscription,
   formatProrationMessage,
   getSubscriptionStatusText,
   buildCheckoutUrl,
@@ -58,7 +57,6 @@ export function SubscriptionManager({ user, token }: SubscriptionManagerProps) {
   const [isChanging, setIsChanging] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [proration, setProration] = useState<ProrationData | null>(null);
   const [loadingProration, setLoadingProration] = useState(false);
 
@@ -130,30 +128,6 @@ export function SubscriptionManager({ user, token }: SubscriptionManagerProps) {
     setIsChanging(false);
   };
 
-  const handleCancelSubscription = async () => {
-    if (!token) return;
-    
-    setIsChanging(true);
-    setError('');
-
-    const result = await cancelSubscription(token);
-
-    if (result.success) {
-      setSuccess(`Subscription cancelled. You have access until ${result.accessUntilFormatted}`);
-      setShowCancelConfirm(false);
-      
-      const updatedUser = { 
-        ...user, 
-        subscriptionStatus: 'cancelled',
-        subscriptionEnd: result.accessUntil 
-      };
-      localStorage.setItem('user_data', JSON.stringify(updatedUser));
-    } else {
-      setError(result.error || 'Failed to cancel subscription');
-    }
-
-    setIsChanging(false);
-  };
 
   const subscriptionStatusText = getSubscriptionStatusText(
     user.subscriptionStatus,
@@ -212,7 +186,7 @@ export function SubscriptionManager({ user, token }: SubscriptionManagerProps) {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h4 className="text-sm font-medium text-gray-900 mb-2">Manage Your Subscription</h4>
           <p className="text-sm text-gray-600 mb-4">
-            You can change plans, update payment methods, or view billing history through our secure billing portal.
+            You can change plans, update payment methods, cancel your subscription, or view billing history through our secure billing portal.
           </p>
           <button
             onClick={handlePlanChange}
@@ -264,46 +238,6 @@ export function SubscriptionManager({ user, token }: SubscriptionManagerProps) {
         </div>
       )}
 
-      {/* Cancel Subscription */}
-      {user.subscriptionStatus === 'active' && (
-        <div className="pt-4 border-t">
-          <button
-            onClick={() => setShowCancelConfirm(true)}
-            className="text-sm text-red-600 hover:text-red-500"
-          >
-            Cancel subscription
-          </button>
-        </div>
-      )}
-
-      {/* Cancel Confirmation Modal */}
-      {showCancelConfirm && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Cancel Subscription?
-            </h3>
-            <p className="text-sm text-gray-500 mb-6">
-              Are you sure you want to cancel your subscription? You'll retain access until the end of your current billing period.
-            </p>
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setShowCancelConfirm(false)}
-                className="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                Keep subscription
-              </button>
-              <button
-                onClick={handleCancelSubscription}
-                disabled={isChanging}
-                className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
-              >
-                {isChanging ? 'Cancelling...' : 'Yes, cancel'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

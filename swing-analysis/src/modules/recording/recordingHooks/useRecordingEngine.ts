@@ -65,8 +65,8 @@ export function useRecordingEngine(params: Params) {
         }
         if (!displayStream) {
           console.error('[RecordingEngine] Failed to get display stream!');
-          setRecordingWarning('Region Capture is required. Select "This Tab" and ensure Chrome supports Region Capture.');
-          return; // Do not fall back to generic screen capture
+          setRecordingWarning('Swing Analyzer Screen Capture v2 extension is required. Enable it and try again.');
+          return;
         }
         displayStreamRef.current = displayStream;
         console.log('[RecordingEngine] Display stream set successfully');

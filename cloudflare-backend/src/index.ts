@@ -17,7 +17,11 @@ export default {
       return new Response(null, { headers: corsHeaders });
     }
 
-    try {
+  try {
+      // Serve ffmpeg-core files via Worker (proxied from CDN with long caching)
+      if (url.pathname.startsWith('/api/ffmpeg-core/')) {
+        return await handleFfmpegCore(request, url, env, corsHeaders);
+      }
       // Route handling
       if (url.pathname === '/api/submissions/init' && request.method === 'POST') {
         return await handleSubmissionInit(request, env, corsHeaders);
@@ -78,6 +82,56 @@ export default {
     }
   }
 };
+
+async function handleFfmpegCore(request: Request, url: URL, env: Env, corsHeaders: any): Promise<Response> {
+  const file = url.pathname.split('/').pop() || '';
+  if (!/^ffmpeg-core\.(js|wasm)$/.test(file)) {
+    return new Response('Not Found', { status: 404, headers: corsHeaders });
+  }
+
+  const keysToTry = [
+    `ffmpeg/${file}`,
+    `assets/${file}`,
+    `${file}`,
+  ];
+
+  for (const key of keysToTry) {
+    try {
+      const obj = await env.VIDEO_BUCKET.get(key);
+      if (!obj) continue;
+      const etag = obj.httpEtag;
+      const ifNoneMatch = request.headers.get('if-none-match');
+      const headers = new Headers();
+      headers.set('Access-Control-Allow-Origin', corsHeaders['Access-Control-Allow-Origin'] || '*');
+      headers.set('Vary', 'Origin');
+      headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+      headers.set('ETag', etag);
+      headers.set('Content-Type', file.endsWith('.wasm') ? 'application/wasm' : 'application/javascript; charset=utf-8');
+      if (obj.size) headers.set('Content-Length', String(obj.size));
+      if (ifNoneMatch && ifNoneMatch === etag) {
+        return new Response(null, { status: 304, headers });
+      }
+      return new Response(obj.body, { status: 200, headers });
+    } catch (e) {
+      // try next key
+    }
+  }
+
+  // Fallback to CDN if not found in R2
+  const cdnBase = 'https://unpkg.com/@ffmpeg/core@0.12.9/dist/umd/';
+  const target = cdnBase + file;
+  const fetched = await fetch(target, { cf: { cacheEverything: true, cacheTtl: 60 * 60 * 24 * 365 } });
+  if (!fetched.ok) {
+    return new Response('Not Found', { status: 404, headers: corsHeaders });
+  }
+  const headers = new Headers(fetched.headers);
+  headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+  headers.set('Access-Control-Allow-Origin', corsHeaders['Access-Control-Allow-Origin'] || '*');
+  headers.set('Vary', 'Origin');
+  const ct = file.endsWith('.wasm') ? 'application/wasm' : 'application/javascript; charset=utf-8';
+  headers.set('Content-Type', ct);
+  return new Response(fetched.body, { status: 200, headers });
+}
 
 async function handleSubmissionInit(request: Request, env: Env, corsHeaders: any): Promise<Response> {
   const data: SubmissionRequest = await request.json();
