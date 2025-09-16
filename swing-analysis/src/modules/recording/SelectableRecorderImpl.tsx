@@ -209,7 +209,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
           }
         } else {
           if (!cancelled) {
-            setCoreStatus('Extension required (Swing Analyzer Screen Capture v2)');
+            setCoreStatus('Extension required (Swing Analyzer Screen Capture)');
             setCorePct(0);
           }
         }
@@ -398,12 +398,12 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
                     setIsTranscoding(true);
                     setTranscodeProgress(0);
                     setTranscodeStatus('Initializing…');
-                    const ext = (window as any).SwingCaptureExtension;
-                    if (!(ext?.isInstalled && typeof ext.transcodeToMP4 === 'function')) {
-                      throw new Error('Extension not detected. Install/enable Swing Analyzer Screen Capture v2.');
-                    }
-                    setTranscodeStatus('Transcoding via Extension…');
-                    const mp4Blob: Blob = await ext.transcodeToMP4(previewSegment!.blob);
+                    // Use the R2-based FFmpeg for transcoding
+                    const { transcodeWebMToMP4 } = await import('./recordingFunctions/mp4Transcode');
+                    setTranscodeStatus('Transcoding via FFmpeg…');
+                    const mp4Blob: Blob = await transcodeWebMToMP4(previewSegment!.blob, (progress) => {
+                      setTranscodeProgress(progress);
+                    });
                     setTranscodeProgress(100);
                     const mp4Url = URL.createObjectURL(mp4Blob);
                     const updated = { ...previewSegment!, blob: mp4Blob, url: mp4Url };

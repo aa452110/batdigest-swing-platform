@@ -65,7 +65,7 @@ export function useRecordingEngine(params: Params) {
         }
         if (!displayStream) {
           console.error('[RecordingEngine] Failed to get display stream!');
-          setRecordingWarning('Swing Analyzer Screen Capture v2 extension is required. Enable it and try again.');
+          setRecordingWarning('Swing Analyzer Screen Capture extension is required. Enable it and try again.');
           return;
         }
         displayStreamRef.current = displayStream;
