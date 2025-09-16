@@ -14,13 +14,12 @@ async function loadFFmpeg(): Promise<FFmpeg> {
   
   ffmpegLoadPromise = (async () => {
     try {
-      // Load FFmpeg from R2/CDN
-      const baseURL = 'https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm';
+      // Load single-threaded FFmpeg (no SharedArrayBuffer required)
+      const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
       
       await ffmpeg!.load({
         coreURL: `${baseURL}/ffmpeg-core.js`,
         wasmURL: `${baseURL}/ffmpeg-core.wasm`,
-        workerURL: `${baseURL}/ffmpeg-core.worker.js`,
       });
       
       console.log('[MP4Transcode] FFmpeg loaded successfully');
