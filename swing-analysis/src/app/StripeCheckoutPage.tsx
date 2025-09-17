@@ -286,20 +286,20 @@ export function StripeCheckoutPage() {
             </div>
             
             {/* iPhone Confirmation */}
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="mt-6">
               <label className="flex items-start cursor-pointer">
+                <span className="text-sm text-gray-700 mr-3">
+                  I have an iPhone 11 or newer
+                  <span className="block text-xs text-gray-500 mt-1">
+                    Required to submit videos via the Swing Shop app
+                  </span>
+                </span>
                 <input
                   type="checkbox"
                   checked={hasIPhone}
                   onChange={(e) => setHasIPhone(e.target.checked)}
-                  className="mt-1 mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
-                <span className="text-sm text-gray-700">
-                  I confirm that I have an iPhone 11 or newer and can download apps from the Apple App Store.
-                  <span className="block text-xs text-gray-500 mt-1">
-                    The Swing Shop app is required to submit videos for analysis.
-                  </span>
-                </span>
               </label>
             </div>
             
