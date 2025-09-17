@@ -37,7 +37,7 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
   const lockedCropRef = useRef<CropCoordinates | null>(null); // The ACTUAL coordinates we use for recording
   
   const [recordedSegments, setRecordedSegments] = useState<any[]>([]);
-  const [previewSegment, setPreviewSegment] = useState<{ id: string; url: string; blob: Blob; duration: number } | null>(null);
+  const [previewSegment, setPreviewSegment] = useState<{ id: string; url: string; blob: Blob; duration: number; isTranscoded?: boolean } | null>(null);
   const [isTranscoding, setIsTranscoding] = useState(false);
   const [transcodeProgress, setTranscodeProgress] = useState(0);
   const [transcodeStatus, setTranscodeStatus] = useState<string>('');
@@ -392,58 +392,74 @@ const SelectableRecorder: React.FC<SelectableRecorderProps> = ({ onAnalysisSaved
               )}
             </div>
             <div className="flex gap-2 p-3 border-t border-gray-700">
-              <button
-                onClick={async () => {
-                  try {
-                    setIsTranscoding(true);
-                    setTranscodeProgress(0);
-                    setTranscodeStatus('Initializing…');
-                    // Use the R2-based FFmpeg for transcoding
-                    const { transcodeWebMToMP4 } = await import('./recordingFunctions/mp4Transcode');
-                    let frameCount = 0;
-                    const mp4Blob: Blob = await transcodeWebMToMP4(
-                      previewSegment!.blob, 
-                      undefined, // No percentage callback
-                      (frames) => {
-                        frameCount = frames;
-                        setTranscodeStatus(`Processing... ${frames} frames`);
+              {!previewSegment?.isTranscoded ? (
+                // Before transcoding: Only show transcode button
+                <button
+                  onClick={async () => {
+                    try {
+                      setIsTranscoding(true);
+                      setTranscodeProgress(0);
+                      setTranscodeStatus('Initializing…');
+                      // Use the R2-based FFmpeg for transcoding
+                      const { transcodeWebMToMP4 } = await import('./recordingFunctions/mp4Transcode');
+                      let frameCount = 0;
+                      const mp4Blob: Blob = await transcodeWebMToMP4(
+                        previewSegment!.blob, 
+                        undefined, // No percentage callback
+                        (frames) => {
+                          frameCount = frames;
+                          setTranscodeStatus(`Processing... ${frames} frames`);
+                        }
+                      );
+                      const mp4Url = URL.createObjectURL(mp4Blob);
+                      const updated = { ...previewSegment!, blob: mp4Blob, url: mp4Url, isTranscoded: true };
+                      setPreviewSegment(updated);
+                      setRecordedSegments(prev => prev.map(s => s.id === updated.id ? updated : s));
+                      setTranscodeStatus('Complete');
+                    } catch (e: any) {
+                      console.error('[MP4] Transcode failed:', e);
+                      setTranscodeStatus('Failed: ' + (e?.message || 'Unknown error'));
+                    } finally {
+                      setTimeout(() => { setIsTranscoding(false); }, 300);
+                    }
+                  }}
+                  disabled={isTranscoding || isUploading}
+                  className={`px-4 py-2 ${isTranscoding ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded transition-colors`}
+                >
+                  {isTranscoding ? 'Transcoding...' : 'Transcode to MP4 (Required)'}
+                </button>
+              ) : (
+                // After transcoding: Show approve & cancel buttons
+                <>
+                  <button
+                    onClick={() => {
+                      if (!previewSegment?.isTranscoded) {
+                        alert('Please transcode the video to MP4 first');
+                        return;
                       }
-                    );
-                    const mp4Url = URL.createObjectURL(mp4Blob);
-                    const updated = { ...previewSegment!, blob: mp4Blob, url: mp4Url };
-                    setPreviewSegment(updated);
-                    setRecordedSegments(prev => prev.map(s => s.id === updated.id ? updated : s));
-                    setTranscodeStatus('Complete');
-                  } catch (e: any) {
-                    console.error('[MP4] Transcode failed:', e);
-                    setTranscodeStatus('Failed: ' + (e?.message || 'Unknown error'));
-                  } finally {
-                    setTimeout(() => { setIsTranscoding(false); }, 300);
-                  }
-                }}
-                disabled={isTranscoding || isUploading}
-                className={`px-3 py-1 ${isTranscoding ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded transition-colors`}
-              >
-                {isTranscoding ? 'Transcoding...' : 'Transcode to MP4 (H.264/AAC)'}
-              </button>
-              <button
-                onClick={() => {
-                  runUpload(previewSegment);
-                  setPreviewSegment(null);
-                }}
-                disabled={isUploading || isTranscoding}
-                className={`px-3 py-1 ${isUploading || isTranscoding ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'} text-white rounded transition-colors`}
-              >
-                {isUploading ? 'Uploading…' : 'Approve & Send to Player'}
-              </button>
-              <button
-                onClick={() => setPreviewSegment(null)}
-                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors"
-              >
-                Close
-              </button>
+                      runUpload(previewSegment);
+                      setPreviewSegment(null);
+                    }}
+                    disabled={isUploading}
+                    className={`px-4 py-2 ${isUploading ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'} text-white rounded transition-colors`}
+                  >
+                    {isUploading ? 'Uploading…' : 'Approve & Send to Player'}
+                  </button>
+                  <button
+                    onClick={() => setPreviewSegment(null)}
+                    disabled={isUploading}
+                    className={`px-4 py-2 ${isUploading ? 'bg-gray-600 cursor-not-allowed' : 'bg-gray-700 hover:bg-gray-600'} text-white rounded transition-colors`}
+                  >
+                    Cancel
+                  </button>
+                </>
+              )}
               <div className="ml-auto flex items-center text-xs text-gray-400">
-                Tip: Click outside or press ESC to dismiss
+                {previewSegment?.isTranscoded ? (
+                  <span className="text-green-400">✓ MP4 Ready</span>
+                ) : (
+                  'Transcode required before upload'
+                )}
               </div>
             </div>
           </div>

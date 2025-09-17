@@ -17,7 +17,7 @@ const PLANS: Plan[] = [
     name: 'Starter',
     price: '$25',
     period: '/month',
-    features: ['2 analyses', 'Pro feedback', 'Progress tracking', 'iOS app']
+    features: ['2 analyses/month', 'Pro feedback', 'Progress tracking', 'iOS app']
   },
   {
     id: 'performance',
@@ -54,6 +54,14 @@ export function LandingPage() {
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4 md:space-x-6">
               <a href="https://batdigest.com" className="text-white hover:text-cyan-300 text-sm md:text-base">BatDigest</a>
+              <a
+                href="https://apps.apple.com/us/app/swingshop/id6751605848"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white hover:text-cyan-300 text-sm md:text-base"
+              >
+                The App
+              </a>
               <Link to="/login" className="text-white hover:text-cyan-300 text-sm md:text-base">Player Login</Link>
               <Link to="/coach/login" className="text-white hover:text-cyan-300 text-sm md:text-base">Coach Login</Link>
               <div className="flex gap-2">
@@ -100,6 +108,15 @@ export function LandingPage() {
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 BatDigest
+              </a>
+              <a
+                href="https://apps.apple.com/us/app/swingshop/id6751605848"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white text-lg hover:text-cyan-300 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                The App
               </a>
               <Link
                 to="/login"

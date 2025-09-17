@@ -27,6 +27,7 @@ export function StripeCheckoutPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [hasIPhone, setHasIPhone] = useState(false);
   
   useEffect(() => {
     // If no plan selected, redirect to home
@@ -36,6 +37,11 @@ export function StripeCheckoutPage() {
   }, [planId, planDetails, navigate]);
   
   const handleStripeCheckout = async () => {
+    if (!hasIPhone) {
+      setError('Please confirm you have an iPhone 11 or newer and can download apps from the App Store');
+      return;
+    }
+    
     if (!email) {
       setError('Please enter your email address');
       return;
@@ -279,6 +285,24 @@ export function StripeCheckoutPage() {
               </div>
             </div>
             
+            {/* iPhone Confirmation */}
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <label className="flex items-start cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={hasIPhone}
+                  onChange={(e) => setHasIPhone(e.target.checked)}
+                  className="mt-1 mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <span className="text-sm text-gray-700">
+                  I confirm that I have an iPhone 11 or newer and can download apps from the Apple App Store.
+                  <span className="block text-xs text-gray-500 mt-1">
+                    The Swing Shop app is required to submit videos for analysis.
+                  </span>
+                </span>
+              </label>
+            </div>
+            
             {/* Actions */}
             <div className="flex justify-between">
               <button
@@ -291,7 +315,7 @@ export function StripeCheckoutPage() {
               
               <button
                 onClick={handleStripeCheckout}
-                disabled={processing || !email}
+                disabled={processing || !email || !hasIPhone}
                 className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
               >
                 {processing ? (

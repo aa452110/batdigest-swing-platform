@@ -26,11 +26,18 @@ export function CheckoutPage() {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState(isUpgrade && user ? user.firstName : '');
   const [lastName, setLastName] = useState(isUpgrade && user ? user.lastName : '');
+  const [hasIPhone, setHasIPhone] = useState(false);
   
   // Round the amount to 2 decimal places
   const finalAmount = Math.round(amount * 100) / 100;
   
   const handleCheckout = async () => {
+    // Check iPhone confirmation first
+    if (!hasIPhone) {
+      alert('Please confirm you have an iPhone 11 or newer and can download apps from the App Store');
+      return;
+    }
+    
     // For upgrades, we don't need email/password since user is logged in
     if (isUpgrade) {
       if (!firstName || !lastName) {
@@ -262,6 +269,24 @@ export function CheckoutPage() {
               </ul>
             </div>
             
+            {/* iPhone Confirmation */}
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <label className="flex items-start cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={hasIPhone}
+                  onChange={(e) => setHasIPhone(e.target.checked)}
+                  className="mt-1 mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <span className="text-sm text-gray-700">
+                  I confirm that I have an iPhone 11 or newer and can download apps from the Apple App Store.
+                  <span className="block text-xs text-gray-500 mt-1">
+                    The Swing Shop app is required to submit videos for analysis.
+                  </span>
+                </span>
+              </label>
+            </div>
+            
             {/* Actions */}
             <div className="mt-6 flex justify-between">
               <button
@@ -273,7 +298,7 @@ export function CheckoutPage() {
               
               <button
                 onClick={handleCheckout}
-                disabled={processing}
+                disabled={processing || !hasIPhone}
                 className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {processing ? 'Processing...' : `Pay $${finalAmount.toFixed(2)}`}

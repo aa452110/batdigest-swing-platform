@@ -49,8 +49,9 @@ export async function transcodeWebMToMP4(
       ffmpegInstance.on('progress', ({ progress, time }) => {
         // Report frame count if callback provided
         if (onFrameCount && time !== undefined) {
-          // Assuming 30fps as a rough estimate
-          const frames = Math.floor(time / 1000 * 30);
+          // time is in microseconds, convert to seconds then estimate frames at 30fps
+          const seconds = time / 1000000;
+          const frames = Math.floor(seconds * 30);
           onFrameCount(frames);
         }
         
