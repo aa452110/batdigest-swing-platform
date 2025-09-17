@@ -1,5 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 
 // Public pages
 import { LandingPage } from './app/LandingPage';
@@ -37,8 +38,23 @@ import { AdminAuth } from './components/AdminAuth';
 import { LimitedSignupBanner } from './components/LimitedSignupBanner';
 
 function App() {
+  // Tracks SPA route changes with GA when on production host
+  const RouteChangeTracker = () => {
+    const location = useLocation();
+    useEffect(() => {
+      try {
+        if (typeof window !== 'undefined' && (window as any).gtag && (window.location.hostname === 'swing.batdigest.com')) {
+          (window as any).gtag('config', 'G-Z4X7TPK6QH', {
+            page_path: location.pathname + (location.search || ''),
+          });
+        }
+      } catch (_) {}
+    }, [location.pathname, location.search]);
+    return null;
+  };
   return (
     <Router>
+      <RouteChangeTracker />
       <LimitedSignupBanner />
       <Routes>
         {/* Public Routes */}
