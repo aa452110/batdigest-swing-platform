@@ -67,6 +67,34 @@ export function CoachAdminPage() {
     }
   };
 
+  const handleDeleteCoach = async (coachId: number, coachEmail: string) => {
+    if (!confirm(`Are you sure you want to delete coach ${coachEmail}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE || 'https://swing-platform.brianduryea.workers.dev'}/api/admin/coach/${coachId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'X-Admin-Password': 'coach500admin'
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to delete coach');
+      }
+
+      // Refresh the list
+      await fetchCoaches();
+      alert(`Coach ${coachEmail} has been deleted successfully.`);
+    } catch (err) {
+      alert(`Error deleting coach: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -169,6 +197,9 @@ export function CoachAdminPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Joined
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -213,6 +244,14 @@ export function CoachAdminPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(coach.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <button
+                        onClick={() => handleDeleteCoach(coach.id, coach.email)}
+                        className="text-red-600 hover:text-red-900 font-medium"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
