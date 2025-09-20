@@ -33,6 +33,27 @@ export function StripeCheckoutPage() {
     // If no plan selected, redirect to home
     if (!planId || !planDetails) {
       navigate('/');
+    } else {
+      // Track checkout page view with Google Analytics
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('event', 'page_view', {
+          page_title: 'Checkout Page',
+          page_path: '/checkout',
+          custom_parameter: planId,
+        });
+        
+        // Also track as conversion event
+        (window as any).gtag('event', 'begin_checkout', {
+          currency: 'USD',
+          value: planDetails.price,
+          items: [{
+            item_id: planId,
+            item_name: planDetails.name,
+            price: planDetails.price,
+            quantity: 1
+          }]
+        });
+      }
     }
   }, [planId, planDetails, navigate]);
   
@@ -94,6 +115,20 @@ export function StripeCheckoutPage() {
       const stripe = await stripePromise;
       if (!stripe) {
         throw new Error('Stripe failed to load');
+      }
+      
+      // Track successful redirect to Stripe
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('event', 'checkout_progress', {
+          currency: 'USD',
+          value: planDetails.price,
+          items: [{
+            item_id: planId,
+            item_name: planDetails.name,
+            price: planDetails.price,
+            quantity: 1
+          }]
+        });
       }
       
       // Redirect to Stripe's hosted checkout page
