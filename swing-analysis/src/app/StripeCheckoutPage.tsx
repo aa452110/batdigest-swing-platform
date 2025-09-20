@@ -54,6 +54,39 @@ export function StripeCheckoutPage() {
           }]
         });
       }
+      
+      // Also track to our own analytics
+      const sessionId = localStorage.getItem('analyticsSessionId') || 
+        `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      if (!localStorage.getItem('analyticsSessionId')) {
+        localStorage.setItem('analyticsSessionId', sessionId);
+      }
+      
+      fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:8787'}/api/analytics/track`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event_type: 'checkout_view',
+          page_path: '/checkout',
+          plan_id: planId,
+          plan_name: planDetails.name,
+          plan_price: planDetails.price,
+          session_id: sessionId,
+          referrer: document.referrer
+        })
+      }).catch(console.error);
+      
+      fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:8787'}/api/analytics/track`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event_type: 'begin_checkout',
+          plan_id: planId,
+          plan_name: planDetails.name,
+          plan_price: planDetails.price,
+          session_id: sessionId
+        })
+      }).catch(console.error);
     }
   }, [planId, planDetails, navigate]);
   
@@ -117,7 +150,7 @@ export function StripeCheckoutPage() {
         throw new Error('Stripe failed to load');
       }
       
-      // Track successful redirect to Stripe
+      // Track successful redirect to Stripe  
       if (typeof window !== 'undefined' && (window as any).gtag) {
         (window as any).gtag('event', 'checkout_progress', {
           currency: 'USD',
@@ -130,6 +163,21 @@ export function StripeCheckoutPage() {
           }]
         });
       }
+      
+      // Track to our analytics
+      const sessionId = localStorage.getItem('analyticsSessionId');
+      fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:8787'}/api/analytics/track`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event_type: 'checkout_progress',
+          plan_id: planId,
+          plan_name: planDetails.name,
+          plan_price: planDetails.price,
+          user_email: email,
+          session_id: sessionId
+        })
+      }).catch(console.error);
       
       // Redirect to Stripe's hosted checkout page
       window.location.href = data.checkoutUrl;

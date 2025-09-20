@@ -33,6 +33,7 @@ import TestExtensionPage from './app/TestExtensionPage';
 import TestAudioPage from './app/TestAudioPage';
 import SupportPage from './app/SupportPage';
 import { CoachAdminPage } from './app/CoachAdminPage';
+import { AdminAnalyticsPage } from './app/AdminAnalyticsPage';
 
 // Auth components
 import { AdminAuth } from './components/AdminAuth';
@@ -106,6 +107,11 @@ function App() {
         <Route path="/admin/coaches" element={
           <AdminAuth>
             <CoachAdminPage />
+          </AdminAuth>
+        } />
+        <Route path="/admin/analytics" element={
+          <AdminAuth>
+            <AdminAnalyticsPage />
           </AdminAuth>
         } />
         
