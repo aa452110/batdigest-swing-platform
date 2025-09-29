@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { API_BASE } from '../services/api';
 
 interface AnalyticsSummary {
+  totalHomepageViews: number;
   totalViews: number;
   totalConversions: number;
   conversionRate: number;
+  checkoutClickRate: number;
+  homepage_views_today: number;
   checkout_views_today: number;
   conversions_today: number;
   unique_visitors_today: number;
@@ -13,6 +16,7 @@ interface AnalyticsSummary {
 
 interface DailyStat {
   date: string;
+  homepage_views: number;
   checkout_views: number;
   begin_checkouts: number;
   checkout_progress: number;
@@ -157,12 +161,22 @@ export function AdminAnalyticsPage() {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="text-3xl font-bold text-gray-800">
+              {summary?.totalHomepageViews || 0}
+            </div>
+            <div className="text-sm text-gray-500">Homepage Visits</div>
+            <div className="text-xs text-gray-400 mt-1">
+              Today: {summary?.homepage_views_today || 0}
+            </div>
+          </div>
+          
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="text-3xl font-bold text-gray-800">
               {summary?.totalViews || 0}
             </div>
-            <div className="text-sm text-gray-500">Total Checkout Views</div>
+            <div className="text-sm text-gray-500">Checkout Views</div>
             <div className="text-xs text-gray-400 mt-1">
               Today: {summary?.checkout_views_today || 0}
             </div>
@@ -180,11 +194,11 @@ export function AdminAnalyticsPage() {
           
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="text-3xl font-bold text-gray-800">
-              {summary?.conversionRate || 0}%
+              {summary?.checkoutClickRate || 0}%
             </div>
-            <div className="text-sm text-gray-500">Conversion Rate</div>
+            <div className="text-sm text-gray-500">Homepage → Checkout</div>
             <div className="text-xs text-gray-400 mt-1">
-              Views → Payment
+              Click-through rate
             </div>
           </div>
           
@@ -242,23 +256,25 @@ export function AdminAnalyticsPage() {
               <thead>
                 <tr className="border-b">
                   <th className="text-left pb-2">Date</th>
-                  <th className="text-right pb-2">Page Views</th>
-                  <th className="text-right pb-2">Started Checkout</th>
-                  <th className="text-right pb-2">Went to Stripe</th>
-                  <th className="text-right pb-2">Conversion</th>
+                  <th className="text-right pb-2">Homepage</th>
+                  <th className="text-right pb-2">Checkout Page</th>
+                  <th className="text-right pb-2">Started Form</th>
+                  <th className="text-right pb-2">To Stripe</th>
+                  <th className="text-right pb-2">CTR</th>
                 </tr>
               </thead>
               <tbody>
                 {dailyStats.map((stat) => (
                   <tr key={stat.date} className="border-b">
                     <td className="py-2">{new Date(stat.date).toLocaleDateString()}</td>
+                    <td className="text-right">{stat.homepage_views || 0}</td>
                     <td className="text-right">{stat.checkout_views}</td>
                     <td className="text-right">{stat.begin_checkouts}</td>
                     <td className="text-right">{stat.checkout_progress}</td>
                     <td className="text-right">
-                      {stat.checkout_views > 0 
-                        ? `${((stat.checkout_progress / stat.checkout_views) * 100).toFixed(1)}%`
-                        : '0%'}
+                      {stat.homepage_views > 0 
+                        ? `${((stat.checkout_views / stat.homepage_views) * 100).toFixed(1)}%`
+                        : '-'}
                     </td>
                   </tr>
                 ))}
