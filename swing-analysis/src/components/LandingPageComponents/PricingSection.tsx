@@ -10,7 +10,30 @@ export interface Plan {
   popular?: boolean;
 }
 
-const PricingSection: React.FC<{ plans: Plan[] }> = ({ plans }) => (
+const PricingSection: React.FC<{ plans: Plan[] }> = ({ plans }) => {
+  const trackPricingClick = (planId: string, planName: string) => {
+    const sessionId = localStorage.getItem('analyticsSessionId') || 
+      `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    console.log(`[Analytics] Pricing button clicked: ${planName}`, {
+      planId,
+      timestamp: new Date().toISOString()
+    });
+    
+    fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:8787'}/api/analytics/track`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_type: 'pricing_click',
+        page_path: '/',
+        plan_id: planId,
+        plan_name: planName,
+        session_id: sessionId
+      })
+    }).catch(err => console.log('Analytics error:', err));
+  };
+
+  return (
   <section className="py-20 bg-gray-100" id="pricing">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <h2 className="text-4xl font-bold text-center mb-4 text-gray-900">Start Improving Today</h2>
@@ -38,12 +61,19 @@ const PricingSection: React.FC<{ plans: Plan[] }> = ({ plans }) => (
                 </li>
               ))}
             </ul>
-            <Link to={`/checkout?plan=${plan.id}`} className="block w-full bg-cyan-500 text-white text-center py-3 rounded-lg font-bold hover:bg-cyan-600 transition-colors">Get Started</Link>
+            <Link 
+              to={`/checkout?plan=${plan.id}`} 
+              onClick={() => trackPricingClick(plan.id, plan.name)}
+              className="block w-full bg-cyan-500 text-white text-center py-3 rounded-lg font-bold hover:bg-cyan-600 transition-colors"
+            >
+              Get Started
+            </Link>
           </div>
         ))}
       </div>
     </div>
   </section>
-);
+  );
+};
 
 export default PricingSection;

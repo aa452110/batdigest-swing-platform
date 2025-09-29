@@ -8,6 +8,27 @@ interface HeroSectionProps {
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({ audience, setAudience }) => {
+  const trackButtonClick = (buttonName: string, destination: string) => {
+    const sessionId = localStorage.getItem('analyticsSessionId') || 
+      `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    console.log(`[Analytics] Button clicked: ${buttonName}`, {
+      destination,
+      timestamp: new Date().toISOString()
+    });
+    
+    fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:8787'}/api/analytics/track`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_type: 'button_click',
+        page_path: '/',
+        plan_id: buttonName,
+        plan_name: destination,
+        session_id: sessionId
+      })
+    }).catch(err => console.log('Analytics error:', err));
+  };
   return (
     <section className="relative bg-gradient-to-br from-slate-900 via-teal-800 to-teal-600 text-white py-32 overflow-hidden">
       <div className="absolute inset-0 opacity-10">
@@ -64,8 +85,20 @@ const HeroSection: React.FC<HeroSectionProps> = ({ audience, setAudience }) => {
             )}
 
             <div className="flex flex-wrap gap-4 mb-8">
-              <a href="#pricing" className="bg-cyan-500 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-cyan-600 transform hover:-translate-y-1 transition-all">Join as Player</a>
-              <a href="/coach/signup" className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-white hover:text-teal-800 transform hover:-translate-y-1 transition-all">Join as Coach</a>
+              <a 
+                href="#pricing" 
+                onClick={() => trackButtonClick('join_as_player_hero', '#pricing')}
+                className="bg-cyan-500 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-cyan-600 transform hover:-translate-y-1 transition-all"
+              >
+                Join as Player
+              </a>
+              <a 
+                href="/coach/signup" 
+                onClick={() => trackButtonClick('join_as_coach_hero', '/coach/signup')}
+                className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-white hover:text-teal-800 transform hover:-translate-y-1 transition-all"
+              >
+                Join as Coach
+              </a>
             </div>
           </div>
 
