@@ -137,6 +137,7 @@ export function AdminAnalyticsPage() {
                 onChange={(e) => setDays(Number(e.target.value))}
                 className="bg-teal-800 text-white px-3 py-1 rounded"
               >
+                <option value={1}>Last 24 hours</option>
                 <option value={7}>Last 7 days</option>
                 <option value={14}>Last 14 days</option>
                 <option value={30}>Last 30 days</option>
