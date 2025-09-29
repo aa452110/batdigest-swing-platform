@@ -62,6 +62,15 @@ export function StripeCheckoutPage() {
         localStorage.setItem('analyticsSessionId', sessionId);
       }
       
+      // Log for debugging
+      console.log('[Analytics] Checkout page view', {
+        planId,
+        planName: planDetails.name,
+        sessionId,
+        referrer: document.referrer,
+        timestamp: new Date().toISOString()
+      });
+      
       fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:8787'}/api/analytics/track`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -74,7 +83,13 @@ export function StripeCheckoutPage() {
           session_id: sessionId,
           referrer: document.referrer
         })
-      }).catch(console.error);
+      }).then(res => {
+        if (!res.ok) {
+          console.error('[Analytics] Failed to track checkout view:', res.status);
+        } else {
+          console.log('[Analytics] Checkout view tracked successfully');
+        }
+      }).catch(err => console.error('[Analytics] Error tracking checkout view:', err));
       
       fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:8787'}/api/analytics/track`, {
         method: 'POST',

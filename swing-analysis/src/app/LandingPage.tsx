@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import HeroSection from '../components/LandingPageComponents/HeroSection';
 import WhySection from '../components/LandingPageComponents/WhySection';
@@ -39,6 +39,35 @@ const PLANS: Plan[] = [
 export function LandingPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [audience, setAudience] = useState('player');
+
+  useEffect(() => {
+    // Track homepage visit
+    const sessionId = localStorage.getItem('analyticsSessionId') || 
+      `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    if (!localStorage.getItem('analyticsSessionId')) {
+      localStorage.setItem('analyticsSessionId', sessionId);
+    }
+    
+    // Send analytics event
+    fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:8787'}/api/analytics/track`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_type: 'homepage_view',
+        page_path: '/',
+        session_id: sessionId,
+        referrer: document.referrer,
+        user_agent: navigator.userAgent
+      })
+    }).catch(err => console.log('Analytics tracking:', err));
+    
+    // Also log to console for debugging
+    console.log('[Analytics] Homepage view tracked', {
+      sessionId,
+      referrer: document.referrer,
+      timestamp: new Date().toISOString()
+    });
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">
