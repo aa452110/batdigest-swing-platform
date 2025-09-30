@@ -44,8 +44,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ audience, setAudience }) => {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
-            <h1 className="text-5xl font-black mb-4 leading-tight">The Mechanics, Not the Metal.</h1>
-            <p className="text-2xl mb-3 text-gray-100">Turn your $150 bat into a $500 swing.</p>
+            <h1 className="text-5xl font-black mb-4 leading-tight">Get the Most From Your Bat.</h1>
+            <p className="text-2xl mb-3 text-gray-100">Turn any bat into your best swing.</p>
             <p className="text-lg mb-6 text-gray-200">Real coaches. Real feedback. Real results. Right on your phone.</p>
 
             {/* Player/Coach toggle for messaging */}
@@ -72,7 +72,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ audience, setAudience }) => {
 
             {audience === 'player' ? (
               <ul className="text-sm md:text-base space-y-2 mb-8 text-gray-100">
-                <li className="flex gap-2 items-start"><span className="text-cyan-300">✓</span>Fix swing flaws with frame-by-frame breakdowns.</li>
+                <li className="flex gap-2 items-start"><span className="text-cyan-300">✓</span>Maximize your bat's performance with pro analysis.</li>
                 <li className="flex gap-2 items-start"><span className="text-cyan-300">✓</span>Use your current coach or get matched with one.</li>
                 <li className="flex gap-2 items-start"><span className="text-cyan-300">✓</span>Personalized drills and progress tracking.</li>
               </ul>

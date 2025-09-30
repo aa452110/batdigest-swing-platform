@@ -27,8 +27,8 @@ const FinalCTA: React.FC = () => {
   return (
   <section className="py-20 bg-gradient-to-br from-slate-900 via-teal-800 to-teal-600 text-white">
     <div className="max-w-5xl mx-auto text-center px-4">
-      <h2 className="text-4xl font-bold mb-6">The Mechanics, Not the Metal.</h2>
-      <p className="text-xl mb-6">The Swing Shop is where we bring the tech, coaches bring the expertise, and hitters bring their swing.</p>
+      <h2 className="text-4xl font-bold mb-6">Get the Most From Your Bat.</h2>
+      <p className="text-xl mb-6">The Swing Shop is where great equipment meets great technique. Make every swing count.</p>
       <div className="flex gap-4 justify-center flex-wrap">
         <a 
           href="#pricing" 
@@ -45,7 +45,7 @@ const FinalCTA: React.FC = () => {
           Join as Coach
         </Link>
       </div>
-      <p className="mt-8 text-cyan-200">It's the body, not the bat.</p>
+      <p className="mt-8 text-cyan-200">Your best bat deserves your best swing.</p>
     </div>
   </section>
   );
