@@ -54,10 +54,14 @@ export default function AccountDashboard() {
     
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE}/api/submissions?user_id=${user.id}`);
+      const response = await fetch(`${API_BASE}/api/submissions?userId=${user.id}`);
       const data = await response.json();
       
-      const userSubmissions = data.submissions || [];
+      // Filter to only show current user's submissions as a safety check
+      const allSubmissions = data.submissions || [];
+      const userSubmissions = allSubmissions.filter((sub: any) => 
+        sub.userId === user.id || sub.user_id === user.id
+      );
       setSubmissions(userSubmissions);
       
       // Calculate upload eligibility
