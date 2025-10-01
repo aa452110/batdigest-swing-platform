@@ -228,9 +228,45 @@ export default function AccountDashboard() {
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const viewAnalysis = (submission: Submission) => {
-    if (submission.downloadUrl || submission.hlsUrl || submission.videoKey) {
-      navigate(`/account/analysis/${submission.submissionId}`, { state: { submission } });
+  const downloadAnalysis = (submission: Submission) => {
+    let downloadUrl = '';
+    
+    // Try to parse analysisResult if it's a JSON string
+    if (submission.analysisResult) {
+      try {
+        const analysisData = JSON.parse(submission.analysisResult);
+        if (analysisData.downloadUrl) {
+          downloadUrl = analysisData.downloadUrl;
+        } else if (analysisData.videoKey) {
+          // Construct download URL from videoKey
+          const accountHash = 'yq8x3fnnfhzi0vpw';
+          downloadUrl = `https://customer-${accountHash}.cloudflarestream.com/${analysisData.videoKey}/downloads/default.mp4`;
+        }
+      } catch (e) {
+        // analysisResult might not be JSON
+      }
+    }
+    
+    // Fallback to direct fields
+    if (!downloadUrl && submission.downloadUrl) {
+      downloadUrl = submission.downloadUrl;
+    } else if (!downloadUrl && submission.videoKey) {
+      const accountHash = 'yq8x3fnnfhzi0vpw';
+      downloadUrl = `https://customer-${accountHash}.cloudflarestream.com/${submission.videoKey}/downloads/default.mp4`;
+    }
+    
+    if (downloadUrl) {
+      // Create a temporary anchor element to trigger download
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `${submission.athleteName}-analysis-${submission.submissionId}.mp4`;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      alert('Analysis video not yet available. Please check back later.');
     }
   };
 
@@ -368,10 +404,10 @@ export default function AccountDashboard() {
                       </div>
                       {submission.status === 'completed' && (
                         <button
-                          onClick={() => viewAnalysis(submission)}
+                          onClick={() => downloadAnalysis(submission)}
                           className="bg-teal-600 text-white px-4 py-2 rounded text-sm hover:bg-teal-700"
                         >
-                          View Analysis
+                          Download Analysis
                         </button>
                       )}
                     </div>
