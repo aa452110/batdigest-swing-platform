@@ -23,6 +23,8 @@ import { CoachHowItWorksPage } from './app/CoachHowItWorksPage';
 
 // Protected pages
 import { AccountPage } from './app/AccountPage';
+import AccountDashboard from './app/AccountDashboard';
+import AccountAnalysisView from './app/AccountAnalysisView';
 
 // Admin pages
 import NeedAnalysisPage from './app/NeedAnalysisPage';
@@ -72,6 +74,8 @@ function App() {
         
         {/* Protected Routes (require login) */}
         <Route path="/account" element={<AccountPage />} />
+        <Route path="/account/dashboard" element={<AccountDashboard />} />
+        <Route path="/account/analysis/:submissionId" element={<AccountAnalysisView />} />
         
         {/* Admin Routes (require admin password) */}
         <Route path="/admin" element={
