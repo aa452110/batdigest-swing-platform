@@ -27,7 +27,7 @@ interface UploadState {
 
 export default function AccountDashboard() {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, loadFromStorage } = useAuthStore();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [canUpload, setCanUpload] = useState(false);
@@ -40,6 +40,10 @@ export default function AccountDashboard() {
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [uploadNotes, setUploadNotes] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    loadFromStorage();
+  }, []);
 
   useEffect(() => {
     if (!isAuthenticated) {
