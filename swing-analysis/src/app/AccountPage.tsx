@@ -141,43 +141,48 @@ export function AccountPage() {
           </div>
 
           <div className="border-b border-gray-200">
-            <nav className="-mb-px flex">
-              <button
-                onClick={() => setActiveTab('account')}
-                className={`py-2 px-6 border-b-2 font-medium text-sm ${
-                  activeTab === 'account'
-                    ? 'border-indigo-500 text-indigo-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Account Info
-              </button>
-              <button
-                onClick={() => setActiveTab('subscription')}
-                className={`py-2 px-6 border-b-2 font-medium text-sm ${
-                  activeTab === 'subscription'
-                    ? 'border-indigo-500 text-indigo-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Subscription
-              </button>
-              <button
-                onClick={() => setActiveTab('password')}
-                className={`py-2 px-6 border-b-2 font-medium text-sm ${
-                  activeTab === 'password'
-                    ? 'border-indigo-500 text-indigo-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Password
-              </button>
-              <button
-                onClick={() => navigate('/account/dashboard')}
-                className="py-2 px-6 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              >
-                My Videos
-              </button>
+            <nav className="-mb-px flex justify-between items-center">
+              <div className="flex">
+                <button
+                  onClick={() => setActiveTab('account')}
+                  className={`py-2 px-6 border-b-2 font-medium text-sm ${
+                    activeTab === 'account'
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Account Info
+                </button>
+                <button
+                  onClick={() => setActiveTab('subscription')}
+                  className={`py-2 px-6 border-b-2 font-medium text-sm ${
+                    activeTab === 'subscription'
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Subscription
+                </button>
+                <button
+                  onClick={() => setActiveTab('password')}
+                  className={`py-2 px-6 border-b-2 font-medium text-sm ${
+                    activeTab === 'password'
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Password
+                </button>
+              </div>
+              <div className="flex items-center gap-4 px-6">
+                <span className="text-sm text-gray-600">Welcome, {user.firstName}</span>
+                <button
+                  onClick={() => navigate('/account/dashboard')}
+                  className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                >
+                  My Videos →
+                </button>
+              </div>
             </nav>
           </div>
 
